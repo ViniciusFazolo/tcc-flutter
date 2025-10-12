@@ -70,34 +70,37 @@ class _HomeState extends State<Home> {
                   style: TextStyle(fontSize: 20),
                 ),
               )
-            : SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: controller.groups
-                      .map(
-                        (group) => GroupCard(
-                          imageUrl: group.image!,
-                          groupName: group.name!,
-                          timeLastPublish: controller.formatHour(
-                            group.userGroups?.isNotEmpty == true
-                                ? group.userGroups![0].hourLastPublish
-                                : null,
-                          ),
+            : SizedBox(
+                height: double.infinity,
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: controller.groups
+                        .map(
+                          (group) => GroupCard(
+                            imageUrl: group.image!,
+                            groupName: group.name!,
+                            timeLastPublish: controller.formatHour(
+                              group.userGroups?.isNotEmpty == true
+                                  ? group.userGroups![0].hourLastPublish
+                                  : null,
+                            ),
 
-                          notifications:
-                              (group.userGroups != null &&
-                                  group.userGroups!.isNotEmpty)
-                              ? group.userGroups![0].totalNotifies
-                              : 0,
-                          onTap: () {
-                            if (group.userGroups![0].totalNotifies > 0) {
-                              controller.resetGroupNotify(context, group.id!);
-                            }
-                            controller.goToGroupById(context, group.id!);
-                          },
-                        ),
-                      )
-                      .toList(),
+                            notifications:
+                                (group.userGroups != null &&
+                                    group.userGroups!.isNotEmpty)
+                                ? group.userGroups![0].totalNotifies
+                                : 0,
+                            onTap: () {
+                              if (group.userGroups![0].totalNotifies > 0) {
+                                controller.resetGroupNotify(context, group.id!);
+                              }
+                              controller.goToGroupById(context, group.id!);
+                            },
+                          ),
+                        )
+                        .toList(),
+                  ),
                 ),
               ),
       ),
