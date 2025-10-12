@@ -64,7 +64,12 @@ class _HomeState extends State<Home> {
         width: double.infinity,
         padding: const EdgeInsets.all(8),
         child: controller.groups.isEmpty
-            ? const Center(child: Text("Nenhum grupo encontrado"))
+            ? const Center(
+                child: Text(
+                  "Nenhum grupo encontrado",
+                  style: TextStyle(fontSize: 20),
+                ),
+              )
             : SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
