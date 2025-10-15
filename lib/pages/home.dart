@@ -40,8 +40,11 @@ class _HomeState extends State<Home> {
                     value: 'config',
                     label: 'Novo grupo',
                     icon: Icons.group_add,
-                    onTap: () {
-                      controller.goToNewGroup(context);
+                    onTap: () async {
+                      await controller.goToNewGroup(context);
+                      await controller.fetchGroupsByUserId().then((_) {
+                        setState(() {});
+                      });
                     },
                   ),
                   PopupMenuItemData(
