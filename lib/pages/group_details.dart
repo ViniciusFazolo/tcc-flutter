@@ -44,8 +44,15 @@ class _GroupDetailsState extends State<GroupDetails> {
               radius: 20,
               backgroundImage: NetworkImage(controller.group.image ?? ''),
             ),
-            const SizedBox(width: 8),
-            Text(controller.group.name ?? ''),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                controller.group.name ?? '',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 18),
+              ),
+            ),
           ],
         ),
         actions: [
