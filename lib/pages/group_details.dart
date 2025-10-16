@@ -65,7 +65,10 @@ class _GroupDetailsState extends State<GroupDetails> {
                     label: 'Novo álbum',
                     icon: Icons.photo_album_outlined,
                     onTap: () async {
-                      controller.goToNewAlbum(context, widget.id);
+                      await controller.goToNewAlbum(context, widget.id);
+                      await controller.fetchAlbumsByGroupId(widget.id).then((_) {
+                        setState(() {});
+                      });
                     },
                   ),
                 ],

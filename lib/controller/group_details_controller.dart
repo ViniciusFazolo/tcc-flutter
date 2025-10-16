@@ -26,6 +26,7 @@ class GroupDetailsController {
     );
 
     final res = await albumService.getList("group/$id");
+    albums = res;
     return res;
   }
 
@@ -36,8 +37,8 @@ class GroupDetailsController {
     );
   }
 
-  goToNewAlbum(BuildContext context, String groupId) {
-    Navigator.push(
+  Future<void> goToNewAlbum(BuildContext context, String groupId) async{
+    await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => NewAlbum(groupId: groupId)),
     );

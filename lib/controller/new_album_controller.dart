@@ -22,9 +22,7 @@ class NewAlbumController {
         fileField: "image",
       );
 
-      if (context.mounted) {
-        Navigator.pop(context);
-      }
+      Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

@@ -43,8 +43,8 @@ class _NewAlbumState extends State<NewAlbum> {
                 width: double.infinity,
                 child: Button(
                   label: "Salvar",
-                  onPressed: () {
-                    controller.submit(context, widget.groupId);
+                  onPressed: () async {
+                    await controller.submit(context, widget.groupId);
                   },
                 ),
               ),
