@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tcc_flutter/controller/group_details_controller.dart';
+import 'package:tcc_flutter/pages/camera.dart';
 import 'package:tcc_flutter/utils/widget/album_card.dart';
 import 'package:tcc_flutter/utils/widget/custom_popup_menu.dart';
 
@@ -79,7 +80,12 @@ class _GroupDetailsState extends State<GroupDetails> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => Camera()),
+          );
+        },
         child: Icon(Icons.camera_alt),
       ),
       body: controller.albums.isNotEmpty
