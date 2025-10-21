@@ -31,6 +31,15 @@ class _CameraPageState extends State<Camera> {
     });
   }
 
+  Future<void> _pickFromGallery() async {
+    final picked = await controller.pickFromGallery();
+    if (picked != null && picked.isNotEmpty && mounted) {
+      setState(() {
+        // As imagens já foram adicionadas ao controller
+      });
+    }
+  }
+
   Future<void> _switchCamera() async {
     await controller.switchCamera();
     if (!mounted) return;
@@ -344,27 +353,22 @@ class _CameraPageState extends State<Camera> {
                           ),
                         ),
 
-                        // Botão de finalizar (direita) - só aparece se tiver fotos
-                        controller.capturedImages.isNotEmpty
-                            ? Container(
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: IconButton(
-                                  icon: const Icon(
-                                    Icons.check,
-                                    color: Colors.white,
-                                    size: 30,
-                                  ),
-                                  onPressed: () {
-                                    List<String> imagePaths = controller
-                                        .getAllImagePaths();
-                                    Navigator.pop(context, imagePaths);
-                                  },
-                                ),
-                              )
-                            : const SizedBox(width: 48),
+                        // Botão de galeria (à direita)
+                        Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: IconButton(
+                          onPressed: _pickFromGallery,  // Mudança aqui
+                            icon: const Icon(
+                              Icons.photo_library_rounded,
+                              color: Colors.white,
+                              size: 30,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),

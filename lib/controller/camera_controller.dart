@@ -9,6 +9,7 @@ class CameraPageController {
   CameraController? cameraController;
   List<XFile> capturedImages = [];
   XFile? currentImage;
+  final ImagePicker _picker = ImagePicker();
 
   Future<void> requestStoragePermission() async {
     // Check if the platform is not web, as web has no permissions
@@ -69,6 +70,46 @@ class CameraPageController {
     await cameraController!.dispose();
     cameraController = CameraController(newDescription, ResolutionPreset.high);
     await cameraController!.initialize();
+  }
+
+  Future<List<XFile>?> pickFromGallery() async {
+    try {
+      // Seleciona múltiplas imagens da galeria
+      final List<XFile> picked = await _picker.pickMultiImage(
+        imageQuality: 85, // Compressão de qualidade (0-100)
+      );
+
+      if (picked.isNotEmpty) {
+        // Adiciona as imagens selecionadas à lista de imagens capturadas
+        capturedImages.addAll(picked);
+        return picked;
+      }
+
+      return null;
+    } catch (e) {
+      print("Erro ao selecionar imagens da galeria: $e");
+      return null;
+    }
+  }
+
+  // Método alternativo para selecionar apenas uma imagem
+  Future<XFile?> pickSingleFromGallery() async {
+    try {
+      final XFile? picked = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+      );
+
+      if (picked != null) {
+        capturedImages.add(picked);
+        return picked;
+      }
+
+      return null;
+    } catch (e) {
+      print("Erro ao selecionar imagem da galeria: $e");
+      return null;
+    }
   }
 
   Future<XFile?> takePicture() async {
