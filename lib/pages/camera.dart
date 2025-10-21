@@ -192,7 +192,7 @@ class _CameraPageState extends State<Camera> {
                 ),
 
                 // Preview das imagens capturadas (mini galeria no topo à direita)
-                if (controller.capturedImages.isNotEmpty)
+                if (controller.capturedImages.isNotEmpty) ...[
                   Positioned(
                     top: 50,
                     right: 15,
@@ -251,6 +251,38 @@ class _CameraPageState extends State<Camera> {
                       ),
                     ),
                   ),
+
+                  // ✅ Botão de finalizar (check) fixo no canto direito logo abaixo da galeria
+                  Positioned(
+                    top: 110, // ~um pouco abaixo da galeria
+                    right: 25,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.3),
+                            blurRadius: 6,
+                            offset: const Offset(2, 2),
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: 28,
+                        ),
+                        onPressed: () {
+                          List<String> imagePaths = controller
+                              .getAllImagePaths();
+                          Navigator.pop(context, imagePaths);
+                        },
+                      ),
+                    ),
+                  ),
+                ],
 
                 // Controles da câmera na parte inferior
                 Positioned(
