@@ -1,9 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:camera/camera.dart';
+import 'package:tcc_flutter/domain/album.dart';
+import 'package:tcc_flutter/pages/image_description.dart';
 
 class CameraPageController {
   CameraController? cameraController;
@@ -169,5 +172,31 @@ class CameraPageController {
     cameraController?.dispose();
     capturedImages.clear();
     currentImage = null;
+  }
+
+  void navigateToDescription(BuildContext context, List<Album> albums) async {
+    List<String> imagePaths = getAllImagePaths();
+
+    if (imagePaths.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Nenhuma foto selecionada'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ImageDescription(imagePaths: imagePaths, albums: albums,),
+      ),
+    );
+
+    // Se retornou com sucesso, volta para a tela anterior
+    if (result != null && result['success'] == true && context.mounted) {
+      Navigator.pop(context, result);
+    }
   }
 }

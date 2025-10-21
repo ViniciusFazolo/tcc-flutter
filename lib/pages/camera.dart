@@ -3,9 +3,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:tcc_flutter/controller/camera_controller.dart';
+import 'package:tcc_flutter/domain/album.dart';
 
 class Camera extends StatefulWidget {
-  const Camera({super.key});
+  final List<Album> albums;
+
+  const Camera({super.key, required this.albums});
 
   @override
   State<Camera> createState() => _CameraPageState();
@@ -140,8 +143,7 @@ class _CameraPageState extends State<Camera> {
                     // Botão prosseguir
                     ElevatedButton(
                       onPressed: () {
-                        List<String> imagePaths = controller.getAllImagePaths();
-                        Navigator.pop(context, imagePaths);
+                        controller.navigateToDescription(context, widget.albums);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Theme.of(context).colorScheme.primary,
@@ -284,9 +286,7 @@ class _CameraPageState extends State<Camera> {
                           size: 28,
                         ),
                         onPressed: () {
-                          List<String> imagePaths = controller
-                              .getAllImagePaths();
-                          Navigator.pop(context, imagePaths);
+                          controller.navigateToDescription(context, widget.albums);
                         },
                       ),
                     ),
@@ -361,7 +361,7 @@ class _CameraPageState extends State<Camera> {
                             shape: BoxShape.circle,
                           ),
                           child: IconButton(
-                          onPressed: _pickFromGallery,  // Mudança aqui
+                            onPressed: _pickFromGallery, // Mudança aqui
                             icon: const Icon(
                               Icons.photo_library_rounded,
                               color: Colors.white,

@@ -83,7 +83,7 @@ class _GroupDetailsState extends State<GroupDetails> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => Camera()),
+            MaterialPageRoute(builder: (context) => Camera(albums: controller.albums)),
           );
         },
         child: Icon(Icons.camera_alt),
