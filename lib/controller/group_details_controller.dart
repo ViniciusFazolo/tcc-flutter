@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tcc_flutter/domain/album.dart';
 import 'package:tcc_flutter/domain/group.dart';
+import 'package:tcc_flutter/pages/group_members.dart';
 import 'package:tcc_flutter/pages/new_album.dart';
 import 'package:tcc_flutter/pages/publish.dart';
 import 'package:tcc_flutter/service/album_service.dart';
@@ -37,10 +38,17 @@ class GroupDetailsController {
     );
   }
 
-  Future<void> goToNewAlbum(BuildContext context, String groupId) async{
+  Future<void> goToNewAlbum(BuildContext context, String groupId) async {
     await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => NewAlbum(groupId: groupId)),
+    );
+  }
+
+  Future<void> goToGroupMembers(BuildContext context, String groupId) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => GroupMembers(groupId: groupId, admin: group.adm!,)),
     );
   }
 

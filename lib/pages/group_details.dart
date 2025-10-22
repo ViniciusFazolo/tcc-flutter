@@ -67,9 +67,19 @@ class _GroupDetailsState extends State<GroupDetails> {
                     icon: Icons.photo_album_outlined,
                     onTap: () async {
                       await controller.goToNewAlbum(context, widget.id);
-                      await controller.fetchAlbumsByGroupId(widget.id).then((_) {
+                      await controller.fetchAlbumsByGroupId(widget.id).then((
+                        _,
+                      ) {
                         setState(() {});
                       });
+                    },
+                  ),
+                  PopupMenuItemData(
+                    value: 'membros',
+                    label: 'Membros',
+                    icon: Icons.people,
+                    onTap: () async {
+                      await controller.goToGroupMembers(context, widget.id);
                     },
                   ),
                 ],
@@ -83,7 +93,9 @@ class _GroupDetailsState extends State<GroupDetails> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => Camera(albums: controller.albums)),
+            MaterialPageRoute(
+              builder: (context) => Camera(albums: controller.albums),
+            ),
           );
         },
         child: Icon(Icons.camera_alt),
