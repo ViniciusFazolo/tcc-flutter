@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tcc_flutter/controller/group_members_controller.dart';
+import 'package:tcc_flutter/domain/group_invite.dart';
 import 'package:tcc_flutter/domain/user.dart';
 import 'package:tcc_flutter/utils/widget/input.dart';
 
@@ -17,27 +18,34 @@ class _GroupMembersState extends State<GroupMembers> {
   final GroupMembersController controller = GroupMembersController();
   bool isLoading = true;
   String? errorMessage;
+  List<GroupInvite> pendingInvites = [];
 
   @override
   void initState() {
     super.initState();
-    _loadMembers();
+    _loadData();
   }
 
-  Future<void> _loadMembers() async {
+  Future<void> _loadData() async {
     try {
       await controller.findPeopleByGroupId(widget.groupId);
+      final invites = await controller.getPendingInvite(
+        widget.groupId,
+        context,
+      );
+
       if (mounted) {
         setState(() {
+          pendingInvites = invites;
           isLoading = false;
         });
       }
     } catch (e) {
-      print('Erro ao carregar membros: $e');
+      print('Erro ao carregar dados: $e');
       if (mounted) {
         setState(() {
           isLoading = false;
-          errorMessage = 'Erro ao carregar membros: $e';
+          errorMessage = 'Erro ao carregar dados: $e';
         });
       }
     }
@@ -72,78 +80,129 @@ class _GroupMembersState extends State<GroupMembers> {
                         isLoading = true;
                         errorMessage = null;
                       });
-                      _loadMembers();
+                      _loadData();
                     },
                     child: const Text('Tentar novamente'),
                   ),
                 ],
               ),
             )
-          : controller.people.isEmpty
-          ? const Center(
+          : _buildMembersList(),
+    );
+  }
+
+  Widget _buildMembersList() {
+    return ListView(
+      children: [
+        // Lista de convites pendentes
+        if (pendingInvites.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              'Convites Pendentes',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[700],
+              ),
+            ),
+          ),
+          ...pendingInvites.map((invite) => _buildPendingInviteItem(invite)),
+          const Divider(thickness: 1, height: 32),
+        ],
+
+        // Lista de membros
+        if (controller.people.isEmpty)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(32.0),
               child: Text(
                 "Nenhum membro encontrado",
                 style: TextStyle(fontSize: 16),
               ),
-            )
-          : ListView.builder(
-              itemCount: controller.people.length,
-              itemBuilder: (context, index) {
-                final member = controller.people[index];
-                final isAdmin = member.id == widget.admin.id;
-
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    backgroundImage:
-                        member.image != null && member.image!.isNotEmpty
-                        ? NetworkImage(member.image!)
-                        : null,
-                    child: member.image == null || member.image!.isEmpty
-                        ? Text(
-                            member.name != null && member.name!.isNotEmpty
-                                ? member.name![0].toUpperCase()
-                                : '?',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          )
-                        : null,
-                  ),
-                  title: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          member.name ?? 'Sem nome',
-                          style: const TextStyle(fontWeight: FontWeight.w500),
-                        ),
-                      ),
-                      if (isAdmin)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          margin: const EdgeInsets.only(right: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.green,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Text(
-                            "ADMIN",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                );
-              },
             ),
+          )
+        else
+          ...controller.people.map((member) => _buildMemberItem(member)),
+      ],
+    );
+  }
+
+  Widget _buildPendingInviteItem(GroupInvite invite) {
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: Colors.orange[300],
+        backgroundImage:
+            invite.invitedUser!.image != null &&
+                invite.invitedUser!.image!.isNotEmpty
+            ? NetworkImage(invite.invitedUser!.image!)
+            : null,
+      ),
+      title: Row(
+        children: [
+          Expanded(
+            child: Text(
+              invite.invitedUser!.login ?? 'Sem identificação',
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
+      ),
+      subtitle: Text(
+        'Aguardando aceite',
+        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+      ),
+    );
+  }
+
+  Widget _buildMemberItem(User member) {
+    final isAdmin = member.id == widget.admin.id;
+
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: Theme.of(context).primaryColor,
+        backgroundImage: member.image != null && member.image!.isNotEmpty
+            ? NetworkImage(member.image!)
+            : null,
+        child: member.image == null || member.image!.isEmpty
+            ? Text(
+                member.name != null && member.name!.isNotEmpty
+                    ? member.name![0].toUpperCase()
+                    : '?',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              )
+            : null,
+      ),
+      title: Row(
+        children: [
+          Expanded(
+            child: Text(
+              member.name ?? 'Sem nome',
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ),
+          if (isAdmin)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              margin: const EdgeInsets.only(right: 8),
+              decoration: BoxDecoration(
+                color: Colors.green,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Text(
+                "ADMIN",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -196,15 +255,25 @@ class _GroupMembersState extends State<GroupMembers> {
                           ),
                           const SizedBox(width: 8),
                           ElevatedButton(
-                            onPressed: () {
+                            onPressed: () async {
                               final email = emailController.text.trim();
                               if (email.isNotEmpty) {
-                                controller.sendInvite(
+                                await controller.sendInvite(
                                   widget.groupId,
                                   widget.admin.id!,
                                   email,
                                   context,
                                 );
+
+                                // Atualiza a lista de convites pendentes
+                                final invites = await controller
+                                    .getPendingInvite(widget.groupId, context);
+
+                                if (mounted) {
+                                  setState(() {
+                                    pendingInvites = invites;
+                                  });
+                                }
                               } else {
                                 final overlay = Overlay.of(context);
                                 final overlayEntry = OverlayEntry(

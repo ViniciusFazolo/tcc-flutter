@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:tcc_flutter/domain/group_invite.dart';
 import 'package:tcc_flutter/domain/user.dart';
 import 'package:tcc_flutter/service/user_service.dart';
 import 'package:tcc_flutter/utils/utils.dart';
@@ -49,5 +50,34 @@ class GroupMembersController {
         ),
       );
     }
+  }
+
+  Future<List<GroupInvite>> getPendingInvite(
+    String groupId,
+    BuildContext context,
+  ) async {
+    try {
+      final url = Uri.parse("$apiBaseUrl/group/invite/pending/$groupId");
+      final res = await http.get(url);
+
+      if (res.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(res.body);
+
+        // Converte cada item da lista JSON em um objeto GroupInvite
+        final invites = data.map((item) => GroupInvite.fromJson(item)).toList();
+
+        return invites;
+      }
+    } catch (e) {
+      print(e);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Erro ao resgatar convites pendentes"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+
+    return [];
   }
 }
