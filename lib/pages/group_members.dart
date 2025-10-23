@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tcc_flutter/controller/group_members_controller.dart';
 import 'package:tcc_flutter/domain/user.dart';
+import 'package:tcc_flutter/utils/widget/input.dart';
 
 class GroupMembers extends StatefulWidget {
   final String groupId;
@@ -46,6 +47,12 @@ class _GroupMembersState extends State<GroupMembers> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Membros")),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.person_add),
+        onPressed: () {
+          _openDialog(context);
+        },
+      ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : errorMessage != null
@@ -137,6 +144,118 @@ class _GroupMembersState extends State<GroupMembers> {
                 );
               },
             ),
+    );
+  }
+
+  void _openDialog(BuildContext context) {
+    final TextEditingController emailController = TextEditingController();
+
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return Align(
+          alignment: Alignment.topCenter,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 60, left: 20, right: 20),
+            child: Material(
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Adicionar Membro',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Input(label: "E-mail", controller: emailController),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text('Cancelar'),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton(
+                            onPressed: () {
+                              final email = emailController.text.trim();
+                              if (email.isNotEmpty) {
+                                controller.sendInvite(
+                                  widget.groupId,
+                                  widget.admin.id!,
+                                  email,
+                                  context,
+                                );
+                              } else {
+                                final overlay = Overlay.of(context);
+                                final overlayEntry = OverlayEntry(
+                                  builder: (context) => Positioned(
+                                    bottom: 20,
+                                    left: 20,
+                                    right: 20,
+                                    child: Material(
+                                      elevation: 6,
+                                      borderRadius: BorderRadius.circular(4),
+                                      color: Colors.red,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 14,
+                                        ),
+                                        child: const Text(
+                                          'Por favor, digite um email válido',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                                overlay.insert(overlayEntry);
+                                Future.delayed(const Duration(seconds: 2), () {
+                                  overlayEntry.remove();
+                                });
+                              }
+                            },
+                            child: const Text('Adicionar'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, -1),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOut)),
+          child: child,
+        );
+      },
     );
   }
 }
