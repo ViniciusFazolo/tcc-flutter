@@ -28,6 +28,19 @@ class GroupMembersController {
     String receiverLogin,
     BuildContext context,
   ) async {
+    final bool receiverExists = await userService.findByLogin(receiverLogin);
+
+    if (!receiverExists) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Este usuário não existe"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     try {
       final headers = {'Content-Type': 'application/json'};
       final body = jsonEncode({
