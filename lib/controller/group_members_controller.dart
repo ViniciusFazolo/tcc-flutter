@@ -50,11 +50,24 @@ class GroupMembersController {
       });
       final url = Uri.parse("$apiBaseUrl/group/invite");
 
-      await http.post(url, body: body, headers: headers);
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Convite enviado com sucesso")),
-      );
+      final res = await http.post(url, body: body, headers: headers);
+
+      if (res.statusCode == 200) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Convite enviado com sucesso")),
+        );
+      } else {
+        final data = jsonDecode(res.body);
+
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(data['message'] ?? "Erro ao enviar convite"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
