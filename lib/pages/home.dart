@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tcc_flutter/controller/home_controller.dart';
+import 'package:tcc_flutter/domain/group_invite.dart';
 import 'package:tcc_flutter/utils/widget/custom_popup_menu.dart';
 import 'package:tcc_flutter/utils/widget/group_card.dart';
 
@@ -12,13 +13,23 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final HomeController controller = HomeController();
+  List<GroupInvite> notifications = [];
 
   @override
   void initState() {
     super.initState();
-    controller.fetchGroupsByUserId().then((_) {
-      setState(() {});
-    });
+    getGroups();
+    getGroupInvites();
+  }
+
+  getGroupInvites() async {
+    notifications = await controller.getGroupInvites();
+    setState(() {});
+  }
+
+  getGroups() async {
+    await controller.fetchGroupsByUserId();
+    setState(() {});
   }
 
   @override
@@ -29,10 +40,48 @@ class _HomeState extends State<Home> {
         actions: [
           Row(
             children: [
-              IconButton(
-                padding: EdgeInsets.zero,
-                icon: const Icon(Icons.notifications_none, size: 25),
-                onPressed: () {},
+              Stack(
+                children: [
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    icon: const Icon(Icons.notifications_none, size: 25),
+                    onPressed: () async {
+                      final hasChanges = await controller.goToNotifications(
+                        context,
+                      );
+
+                      if (hasChanges == true) {
+                        getGroups();
+                        getGroupInvites();
+                      }
+                    },
+                  ),
+                  if (notifications.isNotEmpty)
+                    Positioned(
+                      right: 3,
+                      top: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 18,
+                          minHeight: 18,
+                        ),
+                        child: Text(
+                          '${notifications.length}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
               ),
               CustomPopupMenu(
                 items: [

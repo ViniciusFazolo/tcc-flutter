@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:tcc_flutter/domain/group.dart';
+import 'package:tcc_flutter/domain/group_invite.dart';
 import 'package:tcc_flutter/pages/group_details.dart';
 import 'package:tcc_flutter/pages/login.dart';
 import 'package:tcc_flutter/pages/new_group.dart';
+import 'package:tcc_flutter/pages/notifications.dart';
+import 'package:tcc_flutter/service/group_invite_service.dart';
 import 'package:tcc_flutter/service/group_service.dart';
 import 'package:tcc_flutter/service/user_group_service.dart';
 import 'package:tcc_flutter/utils/prefs.dart';
@@ -70,5 +73,19 @@ class HomeController {
       context,
       MaterialPageRoute(builder: (context) => NewGroup()),
     );
+  }
+
+  Future<bool?> goToNotifications(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const Notifications()),
+    );
+    return result;
+  }
+
+  Future<List<GroupInvite>> getGroupInvites() async {
+    final GroupInviteService service = GroupInviteService(baseUrl: apiBaseUrl);
+    final userId = await Prefs.getString("id");
+    return await service.getList("group/invite/pending/user/$userId");
   }
 }
