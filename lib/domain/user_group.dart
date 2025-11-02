@@ -7,6 +7,7 @@ class UserGroup {
   Group? group;
   int totalNotifies;
   String? hourLastPublish;
+  bool? adm;
 
   UserGroup({
     this.id,
@@ -14,6 +15,7 @@ class UserGroup {
     this.group,
     this.totalNotifies = 0,
     this.hourLastPublish,
+    this.adm,
   });
 
   factory UserGroup.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class UserGroup {
       group: json["group"] != null ? Group.fromJson(json["group"]) : null,
       totalNotifies: json["totalNotifies"] ?? 0,
       hourLastPublish: json["hourLastPublish"],
+      adm: json["adm"]
     );
   }
 
@@ -32,5 +35,6 @@ class UserGroup {
     "group": group?.toJson(),
     "totalNotifies": totalNotifies,
     "hourLastPublish": hourLastPublish,
+    "adm": adm,
   };
 }
