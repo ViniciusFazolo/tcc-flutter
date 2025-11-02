@@ -27,7 +27,7 @@ class _LoginState extends State<Login> {
             spacing: 8,
             children: [
               Image.asset(
-                'assets/logo/logo-transparente.png',
+                'assets/logos/logo.png',
                 width: 200,
                 height: 200,
                 fit: BoxFit.contain,

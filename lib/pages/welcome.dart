@@ -25,7 +25,7 @@ class _WelcomeState extends State<Welcome> {
       child: Stack(
         fit: StackFit.expand,
         children: <Widget>[
-          Image.asset("assets/logo/logo-transparente.png", fit: BoxFit.contain),
+          Image.asset("assets/logos/logo.png", fit: BoxFit.contain),
           Container(
             alignment: Alignment.bottomCenter,
             padding: EdgeInsets.only(bottom: 100),
