@@ -2,6 +2,7 @@ import 'package:tcc_flutter/domain/user_group.dart';
 import 'package:tcc_flutter/service/crud_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:tcc_flutter/utils/prefs.dart';
+import 'package:tcc_flutter/utils/utils.dart';
 
 class UserGroupService extends CrudService {
   UserGroupService({required super.baseUrl})
@@ -18,5 +19,44 @@ class UserGroupService extends CrudService {
     };
 
     await http.get(url, headers: headers);
+  }
+
+  Future<http.Response> promoteToAdmin(String groupId, String userId) async {
+    final token = await Prefs.getString("token");
+    final url = Uri.parse(
+      "$apiBaseUrl/userGroup/promoteToAdmin",
+    ).replace(queryParameters: {"groupId": groupId, "userId": userId});
+    final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    };
+
+    return await http.get(url, headers: headers);
+  }
+  
+  Future<http.Response> removeFromAdminList(String groupId, String userId) async {
+    final token = await Prefs.getString("token");
+    final url = Uri.parse(
+      "$apiBaseUrl/userGroup/removeFromAdminList",
+    ).replace(queryParameters: {"groupId": groupId, "userId": userId});
+    final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    };
+
+    return await http.get(url, headers: headers);
+  }
+
+  Future<http.Response> removeFromGroup(String groupId, String userId) async {
+    final token = await Prefs.getString("token");
+    final url = Uri.parse(
+      "$apiBaseUrl/userGroup/removeFromGroup",
+    ).replace(queryParameters: {"groupId": groupId, "userId": userId});
+    final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    };
+
+    return await http.get(url, headers: headers);
   }
 }

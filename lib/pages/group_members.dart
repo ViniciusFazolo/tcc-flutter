@@ -3,6 +3,8 @@ import 'package:tcc_flutter/controller/group_members_controller.dart';
 import 'package:tcc_flutter/domain/group.dart';
 import 'package:tcc_flutter/domain/group_invite.dart';
 import 'package:tcc_flutter/domain/user.dart';
+import 'package:tcc_flutter/domain/user_group.dart';
+import 'package:tcc_flutter/utils/prefs.dart';
 import 'package:tcc_flutter/utils/widget/input.dart';
 
 class GroupMembers extends StatefulWidget {
@@ -21,6 +23,7 @@ class _GroupMembersState extends State<GroupMembers> {
   String? errorMessage;
   List<GroupInvite> pendingInvites = [];
   bool isUserAdmin = false;
+  String userIdLogged = "";
 
   @override
   void initState() {
@@ -35,6 +38,7 @@ class _GroupMembersState extends State<GroupMembers> {
         context,
       );
       isUserAdmin = await controller.isUserAdm(widget.group.userGroups!);
+      userIdLogged = await Prefs.getString("id");
 
       if (mounted) {
         setState(() {
@@ -43,13 +47,75 @@ class _GroupMembersState extends State<GroupMembers> {
         });
       }
     } catch (e) {
-      print('Erro ao carregar dados: $e');
       if (mounted) {
         setState(() {
           isLoading = false;
           errorMessage = 'Erro ao carregar dados: $e';
         });
       }
+    }
+  }
+
+  Future<void> _promoteToAdmin(User user) async {
+    final success = await controller.promoteToAdmin(
+      user,
+      widget.group.id!,
+      context,
+    );
+
+    if (success) {
+      setState(() {
+        if (widget.group.userGroups != null) {
+          final index = widget.group.userGroups!.indexWhere(
+            (ug) => ug.user?.id == user.id,
+          );
+          if (index != -1) {
+            widget.group.userGroups![index].adm = true;
+          }
+        }
+      });
+    }
+  }
+
+  Future<void> _removeFromAdminList(User user) async {
+    final success = await controller.removeFromAdminList(
+      user,
+      widget.group.id!,
+      context,
+    );
+
+    if (success) {
+      setState(() {
+        if (widget.group.userGroups != null) {
+          final index = widget.group.userGroups!.indexWhere(
+            (ug) => ug.user?.id == user.id,
+          );
+          if (index != -1) {
+            widget.group.userGroups![index].adm = false;
+          }
+        }
+      });
+    }
+  }
+
+  Future<void> _removeFromGroup(User user) async {
+    final success = await controller.removeFromGroup(
+      user,
+      widget.group.id!,
+      context,
+    );
+
+    if (success) {
+      setState(() {
+        if (widget.group.userGroups != null) {
+          final index = widget.group.userGroups!.indexWhere(
+            (ug) => ug.user?.id == user.id,
+          );
+          if (index != -1) {
+            widget.group.userGroups!.removeAt(index);
+          }
+        }
+      });
     }
   }
 
@@ -127,9 +193,7 @@ class _GroupMembersState extends State<GroupMembers> {
             ),
           )
         else if (widget.group.userGroups != null)
-          ...widget.group.userGroups!.map(
-            (member) => _buildMemberItem(member.user!),
-          ),
+          ...widget.group.userGroups!.map((member) => _buildMemberItem(member)),
       ],
     );
   }
@@ -161,53 +225,61 @@ class _GroupMembersState extends State<GroupMembers> {
     );
   }
 
-  Widget _buildMemberItem(User member) {
-    final isAdmin = member.id == widget.admin.id;
-
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: Theme.of(context).primaryColor,
-        backgroundImage: member.image != null && member.image!.isNotEmpty
-            ? NetworkImage(member.image!)
-            : null,
-        child: member.image == null || member.image!.isEmpty
-            ? Text(
-                member.name != null && member.name!.isNotEmpty
-                    ? member.name![0].toUpperCase()
-                    : '?',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              )
-            : null,
-      ),
-      title: Row(
-        children: [
-          Expanded(
-            child: Text(
-              member.name ?? 'Sem nome',
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
-          ),
-          if (isAdmin)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              margin: const EdgeInsets.only(right: 8),
-              decoration: BoxDecoration(
-                color: Colors.green,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: const Text(
-                "ADMIN",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
+  Widget _buildMemberItem(UserGroup userGroup) {
+    return GestureDetector(
+      onTap: () async {
+        final String userIdLogged = await Prefs.getString("id");
+        if (isUserAdmin && userIdLogged != userGroup.user?.id) {
+          _showMemberOptions(userGroup);
+        }
+      },
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: Theme.of(context).primaryColor,
+          backgroundImage:
+              userGroup.user?.image != null && userGroup.user!.image!.isNotEmpty
+              ? NetworkImage(userGroup.user!.image!)
+              : null,
+          child: userGroup.user?.image == null || userGroup.user!.image!.isEmpty
+              ? Text(
+                  userGroup.user?.name != null &&
+                          userGroup.user!.name!.isNotEmpty
+                      ? userGroup.user!.name![0].toUpperCase()
+                      : '?',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                )
+              : null,
+        ),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                userGroup.user?.name ?? 'Sem nome',
+                style: const TextStyle(fontWeight: FontWeight.w500),
               ),
             ),
-        ],
+            if (userGroup.adm ?? false)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                margin: const EdgeInsets.only(right: 8),
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  "ADMIN",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -332,6 +404,133 @@ class _GroupMembersState extends State<GroupMembers> {
             end: Offset.zero,
           ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOut)),
           child: child,
+        );
+      },
+    );
+  }
+
+  void _showMemberOptions(UserGroup userGroup) {
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        return Container(
+          padding: EdgeInsets.symmetric(vertical: 10),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Column(
+                spacing: 10,
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Theme.of(context).primaryColor,
+                    backgroundImage:
+                        userGroup.user?.image != null &&
+                            userGroup.user!.image!.isNotEmpty
+                        ? NetworkImage(userGroup.user!.image!)
+                        : null,
+                    child:
+                        userGroup.user?.image == null ||
+                            userGroup.user!.image!.isEmpty
+                        ? Text(
+                            userGroup.user?.name != null &&
+                                    userGroup.user!.name!.isNotEmpty
+                                ? userGroup.user!.name![0].toUpperCase()
+                                : '?',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 30,
+                            ),
+                          )
+                        : null,
+                  ),
+                  Text(
+                    userGroup.user?.name ?? "",
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 10),
+
+              if (!userGroup.adm!)
+                InkWell(
+                  onTap: () async {
+                    await _promoteToAdmin(userGroup.user!);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.add_moderator_outlined),
+                        SizedBox(width: 10),
+                        Text(
+                          "Promover a admin do grupo",
+                          style: TextStyle(fontSize: 15),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+              Divider(color: Colors.grey[300]),
+
+              if (userGroup.adm!)
+                InkWell(
+                  onTap: () async {
+                    await _removeFromAdminList(userGroup.user!);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.person_remove_alt_1_outlined,
+                          color: Colors.red,
+                        ),
+                        SizedBox(width: 10),
+                        Text(
+                          "Remover da lista de admins",
+                          style: TextStyle(fontSize: 15, color: Colors.red),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+              InkWell(
+                onTap: () async {
+                  await _removeFromGroup(userGroup.user!);
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.remove_circle_outline, color: Colors.red),
+                      SizedBox(width: 10),
+                      Text(
+                        "Remover do grupo",
+                        style: TextStyle(fontSize: 15, color: Colors.red),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              SizedBox(height: 10),
+            ],
+          ),
         );
       },
     );

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:tcc_flutter/domain/group_invite.dart';
 import 'package:tcc_flutter/domain/user.dart';
 import 'package:tcc_flutter/domain/user_group.dart';
+import 'package:tcc_flutter/service/user_group_service.dart';
 import 'package:tcc_flutter/service/user_service.dart';
 import 'package:tcc_flutter/utils/prefs.dart';
 import 'package:tcc_flutter/utils/utils.dart';
@@ -12,6 +13,9 @@ import 'package:http/http.dart' as http;
 class GroupMembersController {
   List<User> people = [];
   final UserService userService = UserService(baseUrl: apiBaseUrl);
+  final UserGroupService userGroupService = UserGroupService(
+    baseUrl: apiBaseUrl,
+  );
 
   Future<void> findPeopleByGroupId(String groupId) async {
     try {
@@ -109,20 +113,107 @@ class GroupMembersController {
     return [];
   }
 
-
   Future<bool> isUserAdm(List<UserGroup> userGroup) async {
     final userId = await Prefs.getString("id");
 
-    for(var ug in userGroup) {
+    for (var ug in userGroup) {
       String? ugUserId = ug.user?.id;
 
-      if(ugUserId == userId) {
-        if(ug.adm!) return true;
+      if (ugUserId == userId) {
+        if (ug.adm!) return true;
 
-        return false; 
+        return false;
       }
     }
 
     return false;
+  }
+
+  Future<bool> promoteToAdmin(
+    User user,
+    String groupId,
+    BuildContext context,
+  ) async {
+    final res = await userGroupService.promoteToAdmin(groupId, user.id!);
+    final String name = user.name!;
+
+    Navigator.pop(context);
+
+    if (res.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("$name foi promovido a admin do grupo")),
+      );
+
+      return true;
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Erro ao promover $name a admin do grupo, tente novamente"),
+          backgroundColor: Colors.red,
+        ),
+      );
+
+      return false;
+    }
+  }
+  
+  Future<bool> removeFromAdminList(
+    User user,
+    String groupId,
+    BuildContext context,
+  ) async {
+    final res = await userGroupService.removeFromAdminList(groupId, user.id!);
+    final String name = user.name!;
+
+    Navigator.pop(context);
+
+    if (res.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("$name foi removido da lista de admins do grupo")),
+      );
+
+      return true;
+    } else {
+      final data = jsonDecode(res.body);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(data["message"] ?? "Erro ao remover $name da lista de admins do grupo, tente novamente"),
+          backgroundColor: Colors.red,
+        ),
+      );
+
+      return false;
+    }
+  }
+
+  Future<bool> removeFromGroup(
+    User user,
+    String groupId,
+    BuildContext context,
+  ) async {
+    final res = await userGroupService.removeFromGroup(groupId, user.id!);
+    final String name = user.name!;
+
+    Navigator.pop(context);
+
+    if (res.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("$name foi removido do grupo")),
+      );
+
+      return true;
+    } else {
+      final data = jsonDecode(res.body);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(data["message"] ?? "Erro ao remover $name do grupo, tente novamente"),
+          backgroundColor: Colors.red,
+        ),
+      );
+
+      return false;
+    }
   }
 }
