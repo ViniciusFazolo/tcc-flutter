@@ -10,8 +10,8 @@ import 'package:tcc_flutter/utils/widget/input.dart';
 class GroupMembers extends StatefulWidget {
   final Group group;
   final User admin;
-
-  const GroupMembers({super.key, required this.group, required this.admin});
+  final bool isUserAdmin;
+  const GroupMembers({super.key, required this.group, required this.admin, required this.isUserAdmin});
 
   @override
   State<GroupMembers> createState() => _GroupMembersState();
@@ -22,7 +22,6 @@ class _GroupMembersState extends State<GroupMembers> {
   bool isLoading = true;
   String? errorMessage;
   List<GroupInvite> pendingInvites = [];
-  bool isUserAdmin = false;
   String userIdLogged = "";
 
   @override
@@ -37,7 +36,6 @@ class _GroupMembersState extends State<GroupMembers> {
         widget.group.id!,
         context,
       );
-      isUserAdmin = await controller.isUserAdm(widget.group.userGroups!);
       userIdLogged = await Prefs.getString("id");
 
       if (mounted) {
@@ -123,7 +121,7 @@ class _GroupMembersState extends State<GroupMembers> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Membros")),
-      floatingActionButton: isUserAdmin
+      floatingActionButton: widget.isUserAdmin
           ? FloatingActionButton(
               child: Icon(Icons.person_add),
               onPressed: () {
@@ -229,7 +227,7 @@ class _GroupMembersState extends State<GroupMembers> {
     return GestureDetector(
       onTap: () async {
         final String userIdLogged = await Prefs.getString("id");
-        if (isUserAdmin && userIdLogged != userGroup.user?.id) {
+        if (widget.isUserAdmin && userIdLogged != userGroup.user?.id) {
           _showMemberOptions(userGroup);
         }
       },

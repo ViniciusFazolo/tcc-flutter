@@ -15,7 +15,7 @@ class GroupDetails extends StatefulWidget {
 class _GroupDetailsState extends State<GroupDetails> {
   final GroupDetailsController controller = GroupDetailsController();
   bool isLoading = true;
-  bool isUserAdm = false;
+  bool isUserAdmin = false;
 
   @override
   void initState() {
@@ -25,7 +25,7 @@ class _GroupDetailsState extends State<GroupDetails> {
 
   Future<void> _loadGroup() async {
     await controller.fetchGroupById(widget.id);
-    isUserAdm = await controller.isUserAdm();
+    isUserAdmin = await controller.isUserAdmin();
     setState(() {
       isLoading = false;
     });
@@ -63,7 +63,7 @@ class _GroupDetailsState extends State<GroupDetails> {
             children: [
               CustomPopupMenu(
                 items: [
-                  if(isUserAdm) 
+                  if(isUserAdmin) 
                     PopupMenuItemData(
                       value: 'new_album',
                       label: 'Novo álbum',
@@ -82,7 +82,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                     label: 'Membros',
                     icon: Icons.people,
                     onTap: () async {
-                      await controller.goToGroupMembers(context, controller.group);
+                      await controller.goToGroupMembers(context, controller.group, isUserAdmin);
                     },
                   ),
                 ],

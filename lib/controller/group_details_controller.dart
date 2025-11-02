@@ -46,10 +46,10 @@ class GroupDetailsController {
     );
   }
 
-  Future<void> goToGroupMembers(BuildContext context, Group group) async {
+  Future<void> goToGroupMembers(BuildContext context, Group group, bool isUserAdmin) async {
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => GroupMembers(group: group, admin: group.adm!,)),
+      MaterialPageRoute(builder: (context) => GroupMembers(group: group, admin: group.adm!, isUserAdmin: isUserAdmin,)),
     );
   }
 
@@ -59,7 +59,7 @@ class GroupDetailsController {
   //   Navigator.push(context, MaterialPageRoute(builder: (context) => Camera(cameras: camerasRes,)));
   // }
 
-  Future<bool> isUserAdm() async {
+  Future<bool> isUserAdmin() async {
     final userId = await Prefs.getString("id");
 
     for (var ug in group.userGroups!) {
