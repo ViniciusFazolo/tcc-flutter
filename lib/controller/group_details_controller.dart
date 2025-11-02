@@ -6,6 +6,7 @@ import 'package:tcc_flutter/pages/new_album.dart';
 import 'package:tcc_flutter/pages/publish.dart';
 import 'package:tcc_flutter/service/album_service.dart';
 import 'package:tcc_flutter/service/group_service.dart';
+import 'package:tcc_flutter/utils/prefs.dart';
 import 'package:tcc_flutter/utils/utils.dart';
 
 class GroupDetailsController {
@@ -57,4 +58,20 @@ class GroupDetailsController {
 
   //   Navigator.push(context, MaterialPageRoute(builder: (context) => Camera(cameras: camerasRes,)));
   // }
+
+  Future<bool> isUserAdm() async {
+    final userId = await Prefs.getString("id");
+
+    for (var ug in group.userGroups!) {
+      String? ugUserId = ug.user?.id;
+
+      if (ugUserId == userId) {
+        if (ug.adm!) return true;
+
+        return false;
+      }
+    }
+
+    return false;
+  }
 }
