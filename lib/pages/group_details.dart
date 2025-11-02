@@ -79,7 +79,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                     label: 'Membros',
                     icon: Icons.people,
                     onTap: () async {
-                      await controller.goToGroupMembers(context, widget.id);
+                      await controller.goToGroupMembers(context, controller.group);
                     },
                   ),
                 ],

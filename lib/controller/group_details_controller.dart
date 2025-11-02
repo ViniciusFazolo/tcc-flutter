@@ -45,10 +45,10 @@ class GroupDetailsController {
     );
   }
 
-  Future<void> goToGroupMembers(BuildContext context, String groupId) async {
+  Future<void> goToGroupMembers(BuildContext context, Group group) async {
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => GroupMembers(groupId: groupId, admin: group.adm!,)),
+      MaterialPageRoute(builder: (context) => GroupMembers(group: group, admin: group.adm!,)),
     );
   }
 

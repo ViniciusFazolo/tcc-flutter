@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:tcc_flutter/controller/group_members_controller.dart';
+import 'package:tcc_flutter/domain/group.dart';
 import 'package:tcc_flutter/domain/group_invite.dart';
 import 'package:tcc_flutter/domain/user.dart';
 import 'package:tcc_flutter/utils/widget/input.dart';
 
-class GroupMembers extends StatefulWidget {
+  final Group group;
   final String groupId;
   final User admin;
 
-  const GroupMembers({super.key, required this.groupId, required this.admin});
+  const GroupMembers({super.key, required this.group, required this.admin});
 
   @override
   State<GroupMembers> createState() => _GroupMembersState();
@@ -28,9 +29,8 @@ class _GroupMembersState extends State<GroupMembers> {
 
   Future<void> _loadData() async {
     try {
-      await controller.findPeopleByGroupId(widget.groupId);
       final invites = await controller.getPendingInvite(
-        widget.groupId,
+        widget.group.id!,
         context,
       );
 
@@ -112,7 +112,7 @@ class _GroupMembersState extends State<GroupMembers> {
         ],
 
         // Lista de membros
-        if (controller.people.isEmpty)
+        if (widget.group.userGroups?.isEmpty ?? true)
           const Center(
             child: Padding(
               padding: EdgeInsets.all(32.0),
@@ -122,8 +122,10 @@ class _GroupMembersState extends State<GroupMembers> {
               ),
             ),
           )
-        else
-          ...controller.people.map((member) => _buildMemberItem(member)),
+        else if (widget.group.userGroups != null)
+          ...widget.group.userGroups!.map(
+            (member) => _buildMemberItem(member.user!),
+          ),
       ],
     );
   }
@@ -259,7 +261,7 @@ class _GroupMembersState extends State<GroupMembers> {
                               final email = emailController.text.trim();
                               if (email.isNotEmpty) {
                                 await controller.sendInvite(
-                                  widget.groupId,
+                                  widget.group.id!,
                                   widget.admin.id!,
                                   email,
                                   context,
@@ -267,7 +269,10 @@ class _GroupMembersState extends State<GroupMembers> {
 
                                 // Atualiza a lista de convites pendentes
                                 final invites = await controller
-                                    .getPendingInvite(widget.groupId, context);
+                                    .getPendingInvite(
+                                      widget.group.id!,
+                                      context,
+                                    );
 
                                 if (mounted) {
                                   setState(() {
