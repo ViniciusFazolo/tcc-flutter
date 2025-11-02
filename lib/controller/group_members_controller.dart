@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:tcc_flutter/domain/group_invite.dart';
 import 'package:tcc_flutter/domain/user.dart';
+import 'package:tcc_flutter/domain/user_group.dart';
 import 'package:tcc_flutter/service/user_service.dart';
+import 'package:tcc_flutter/utils/prefs.dart';
 import 'package:tcc_flutter/utils/utils.dart';
 import 'package:http/http.dart' as http;
 
@@ -105,5 +107,22 @@ class GroupMembersController {
     }
 
     return [];
+  }
+
+
+  Future<bool> isUserAdm(List<UserGroup> userGroup) async {
+    final userId = await Prefs.getString("id");
+
+    for(var ug in userGroup) {
+      String? ugUserId = ug.user?.id;
+
+      if(ugUserId == userId) {
+        if(ug.adm!) return true;
+
+        return false; 
+      }
+    }
+
+    return false;
   }
 }

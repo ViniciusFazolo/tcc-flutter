@@ -5,8 +5,8 @@ import 'package:tcc_flutter/domain/group_invite.dart';
 import 'package:tcc_flutter/domain/user.dart';
 import 'package:tcc_flutter/utils/widget/input.dart';
 
+class GroupMembers extends StatefulWidget {
   final Group group;
-  final String groupId;
   final User admin;
 
   const GroupMembers({super.key, required this.group, required this.admin});
@@ -20,6 +20,7 @@ class _GroupMembersState extends State<GroupMembers> {
   bool isLoading = true;
   String? errorMessage;
   List<GroupInvite> pendingInvites = [];
+  bool isUserAdmin = false;
 
   @override
   void initState() {
@@ -33,6 +34,7 @@ class _GroupMembersState extends State<GroupMembers> {
         widget.group.id!,
         context,
       );
+      isUserAdmin = await controller.isUserAdm(widget.group.userGroups!);
 
       if (mounted) {
         setState(() {
@@ -55,12 +57,14 @@ class _GroupMembersState extends State<GroupMembers> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Membros")),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.person_add),
-        onPressed: () {
-          _openDialog(context);
-        },
-      ),
+      floatingActionButton: isUserAdmin
+          ? FloatingActionButton(
+              child: Icon(Icons.person_add),
+              onPressed: () {
+                _openDialog(context);
+              },
+            )
+          : null,
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : errorMessage != null
