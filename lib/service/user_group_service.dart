@@ -59,4 +59,17 @@ class UserGroupService extends CrudService {
 
     return await http.get(url, headers: headers);
   }
+
+  Future<http.Response> promoteToGroupOwner(String groupId, String userId) async {
+    final token = await Prefs.getString("token");
+    final url = Uri.parse(
+      "$apiBaseUrl/userGroup/promoteToGroupOwner",
+    ).replace(queryParameters: {"groupId": groupId, "userId": userId});
+    final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    };
+
+    return await http.get(url, headers: headers);
+  }
 }

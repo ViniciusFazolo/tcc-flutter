@@ -118,6 +118,34 @@ class _GroupMembersState extends State<GroupMembers> {
     }
   }
 
+  Future<void> _promoteToGroupOwner(User user) async {
+    final success = await controller.promoteToGroupOwner(
+      user,
+      widget.group.id!,
+      context,
+    );
+
+    if (success) {
+      setState(() {
+        widget.group.adm = user;
+        currentAdmin = user;
+
+        if (widget.group.userGroups != null) {
+          final index = widget.group.userGroups!.indexWhere(
+            (ug) => ug.user?.id == user.id,
+          );
+          if (index != -1) {
+            widget.group.userGroups?[index].adm = true;
+          }
+        }
+      });
+    }
+  }
+
+  Future<void> _leaveGroup() async {
+    controller.leaveGroup(context, widget.group.id!);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -454,6 +482,30 @@ class _GroupMembersState extends State<GroupMembers> {
 
               SizedBox(height: 10),
 
+              if (userIdLogged == currentAdmin.id!)
+                InkWell(
+                  onTap: () async {
+                    String name = userGroup.user?.name ?? "";
+                    await _confirmPromoteToGroupOwner(context, "Tem certeza que deseja adicionar $name como dono do grupo?", "", userGroup.user!);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.star_outline),
+                        SizedBox(width: 10),
+                        Text(
+                          "Promover a dono do grupo",
+                          style: TextStyle(fontSize: 15),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
               if (!userGroup.adm!)
                 InkWell(
                   onTap: () async {
@@ -530,6 +582,38 @@ class _GroupMembersState extends State<GroupMembers> {
               SizedBox(height: 10),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  Future<bool?> _confirmPromoteToGroupOwner(
+    BuildContext context,
+    String title,
+    String? content,
+    User user,
+  ) async {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: content != null ? Text(content) : null,
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Não'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _promoteToGroupOwner(user);
+              },
+              child: const Text('Sim'),
+            ),
+          ],
         );
       },
     );
