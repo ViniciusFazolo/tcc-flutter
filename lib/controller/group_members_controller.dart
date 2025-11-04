@@ -216,4 +216,34 @@ class GroupMembersController {
       return false;
     }
   }
+
+  Future<bool> promoteToGroupOwner(
+    User user,
+    String groupId,
+    BuildContext context,
+  ) async {
+    final res = await userGroupService.promoteToGroupOwner(groupId, user.id!);
+    final String name = user.name!;
+
+    Navigator.pop(context);
+
+    if (res.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("$name foi promovido a dono do grupo")),
+      );
+
+      return true;
+    } else {
+      final data = jsonDecode(res.body);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(data["message"] ?? "Erro ao promover $name a dono do grupo, tente novamente"),
+          backgroundColor: Colors.red,
+        ),
+      );
+
+      return false;
+    }
+  }
 }
