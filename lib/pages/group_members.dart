@@ -23,6 +23,7 @@ class _GroupMembersState extends State<GroupMembers> {
   String? errorMessage;
   List<GroupInvite> pendingInvites = [];
   String userIdLogged = "";
+  late User currentAdmin;
 
   @override
   void initState() {
@@ -37,7 +38,7 @@ class _GroupMembersState extends State<GroupMembers> {
         context,
       );
       userIdLogged = await Prefs.getString("id");
-
+      currentAdmin = widget.admin;
       if (mounted) {
         setState(() {
           pendingInvites = invites;
@@ -336,7 +337,7 @@ class _GroupMembersState extends State<GroupMembers> {
                               if (email.isNotEmpty) {
                                 await controller.sendInvite(
                                   widget.group.id!,
-                                  widget.admin.id!,
+                                  currentAdmin.id!,
                                   email,
                                   context,
                                 );
