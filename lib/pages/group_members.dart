@@ -5,6 +5,7 @@ import 'package:tcc_flutter/domain/group_invite.dart';
 import 'package:tcc_flutter/domain/user.dart';
 import 'package:tcc_flutter/domain/user_group.dart';
 import 'package:tcc_flutter/utils/prefs.dart';
+import 'package:tcc_flutter/utils/widget/custom_popup_menu.dart';
 import 'package:tcc_flutter/utils/widget/input.dart';
 
 class GroupMembers extends StatefulWidget {
@@ -143,13 +144,49 @@ class _GroupMembersState extends State<GroupMembers> {
   }
 
   Future<void> _leaveGroup() async {
-    controller.leaveGroup(context, widget.group.id!);
+    if(widget.group.userGroups != null) {
+      if(widget.group.userGroups!.length > 1 && userIdLogged == currentAdmin.id) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Promova um membro como dono do grupo antes de sair"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }else{
+        controller.leaveGroup(context, widget.group.id!);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Membros")),
+      appBar: AppBar(
+        title: const Text("Membros"),
+        actions: [
+          Row(
+            children: [
+              CustomPopupMenu(
+                items: [
+                  PopupMenuItemData(
+                    value: 'sair',
+                    label: 'Sair do grupo',
+                    icon: Icons.logout_rounded,
+                    onTap: () async {
+                      await confirmLeaveGroup(
+                        context,
+                        "Realmente deseja sair do grupo?",
+                        "",
+                      );
+                    },
+                  ),
+                ],
+              ),
+              SizedBox(width: 8),
+            ],
+          ),
+        ],
+      ),
       floatingActionButton: widget.isUserAdmin
           ? FloatingActionButton(
               child: Icon(Icons.person_add),
@@ -308,6 +345,37 @@ class _GroupMembersState extends State<GroupMembers> {
           ],
         ),
       ),
+    );
+  }
+
+  Future<bool?> confirmLeaveGroup(
+    BuildContext context,
+    String title,
+    String? content,
+  ) async {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: content != null ? Text(content) : null,
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Não'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _leaveGroup();
+              },
+              child: const Text('Sim'),
+            ),
+          ],
+        );
+      },
     );
   }
 

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:tcc_flutter/domain/group_invite.dart';
 import 'package:tcc_flutter/domain/user.dart';
 import 'package:tcc_flutter/domain/user_group.dart';
+import 'package:tcc_flutter/pages/home.dart';
 import 'package:tcc_flutter/service/user_group_service.dart';
 import 'package:tcc_flutter/service/user_service.dart';
 import 'package:tcc_flutter/utils/prefs.dart';
@@ -244,6 +245,24 @@ class GroupMembersController {
       );
 
       return false;
+    }
+  }
+
+  Future<void> leaveGroup(BuildContext context, String groupId) async {
+    final userIdLogged = await Prefs.getString("id");
+    final res = await userGroupService.leaveGroup(groupId, userIdLogged);
+
+    if (res.statusCode == 200) {
+      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => Home()), (route) => false);
+    } else {
+      final data = jsonDecode(res.body);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(data["message"] ?? "Erro ao sair do grupo, tente novamente"),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 }
