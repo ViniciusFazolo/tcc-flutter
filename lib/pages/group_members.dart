@@ -175,8 +175,6 @@ class _GroupMembersState extends State<GroupMembers> {
                     onTap: () async {
                       await confirmLeaveGroup(
                         context,
-                        "Realmente deseja sair do grupo?",
-                        "",
                       );
                     },
                   ),
@@ -350,15 +348,14 @@ class _GroupMembersState extends State<GroupMembers> {
 
   Future<bool?> confirmLeaveGroup(
     BuildContext context,
-    String title,
-    String? content,
   ) async {
+    final String title = widget.group.userGroups!.length >= 2 ? "Realmente deseja sair do grupo?" : "Realmente deseja sair? Imagens serão permanentemente deletadas";
+
     return showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(title),
-          content: content != null ? Text(content) : null,
           actions: <Widget>[
             TextButton(
               onPressed: () {
