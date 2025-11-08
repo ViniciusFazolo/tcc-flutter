@@ -17,6 +17,9 @@ class _GroupDetailsState extends State<GroupDetails> {
   bool isLoading = true;
   bool isUserAdmin = false;
 
+  bool isSelectionMode = false;
+  List<String> selectedAlbumIds = [];
+
   @override
   void initState() {
     super.initState();
@@ -31,6 +34,83 @@ class _GroupDetailsState extends State<GroupDetails> {
     });
   }
 
+  void _toggleSelectionMode() {
+    setState(() {
+      isSelectionMode = !isSelectionMode;
+      if (!isSelectionMode) {
+        selectedAlbumIds.clear();
+      }
+    });
+  }
+
+  void _toggleAlbumSelection(String albumId) {
+    setState(() {
+      if (selectedAlbumIds.contains(albumId)) {
+        selectedAlbumIds.remove(albumId);
+        // Se não houver mais álbuns selecionados, sair do modo de seleção
+        if (selectedAlbumIds.isEmpty) {
+          isSelectionMode = false;
+        }
+      } else {
+        selectedAlbumIds.add(albumId);
+      }
+    });
+  }
+
+  Future<void> _deleteSelectedAlbums() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar exclusão'),
+        content: Text(
+          'Deseja realmente excluir ${selectedAlbumIds.length} álbum(ns)? Se houver imagens, elas serão permanentemente deletadas',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            style: TextButton.styleFrom(foregroundColor: Colors.grey),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Excluir'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await controller.deleteAlbums(selectedAlbumIds);
+
+        setState(() {
+          isSelectionMode = false;
+          selectedAlbumIds.clear();
+          _loadGroup();
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Álbuns excluídos com sucesso')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Erro ao excluir álbuns: $e')));
+        }
+      }
+    }
+  }
+
+  void _selectAll() {
+    setState(() {
+      selectedAlbumIds = controller.albums.map((album) => album.id!).toList();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
@@ -40,69 +120,98 @@ class _GroupDetailsState extends State<GroupDetails> {
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 0,
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircleAvatar(
-              radius: 20,
-              backgroundImage: NetworkImage(controller.group.image ?? ''),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                controller.group.name ?? '',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 18),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          Row(
-            children: [
-              CustomPopupMenu(
-                items: [
-                  if(isUserAdmin) 
-                    PopupMenuItemData(
-                      value: 'new_album',
-                      label: 'Novo álbum',
-                      icon: Icons.photo_album_outlined,
-                      onTap: () async {
-                        await controller.goToNewAlbum(context, widget.id);
-                        await controller.fetchAlbumsByGroupId(widget.id).then((
-                          _,
-                        ) {
-                          setState(() {});
-                        });
-                      },
+        leading: isSelectionMode
+            ? IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: _toggleSelectionMode,
+              )
+            : null,
+        title: isSelectionMode
+            ? Text('${selectedAlbumIds.length} selecionado(s)')
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundImage: NetworkImage(controller.group.image ?? ''),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      controller.group.name ?? '',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 18),
                     ),
-                  PopupMenuItemData(
-                    value: 'membros',
-                    label: 'Membros',
-                    icon: Icons.people,
-                    onTap: () async {
-                      await controller.goToGroupMembers(context, controller.group, isUserAdmin);
-                    },
                   ),
                 ],
               ),
-              SizedBox(width: 8),
-            ],
-          ),
+        actions: [
+          if (isSelectionMode) ...[
+            if (selectedAlbumIds.length < controller.albums.length)
+              IconButton(
+                icon: const Icon(Icons.select_all),
+                onPressed: _selectAll,
+                tooltip: 'Selecionar tudo',
+              ),
+            IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: selectedAlbumIds.isEmpty
+                  ? null
+                  : _deleteSelectedAlbums,
+              tooltip: 'Excluir',
+            ),
+          ] else
+            Row(
+              children: [
+                CustomPopupMenu(
+                  items: [
+                    if (isUserAdmin)
+                      PopupMenuItemData(
+                        value: 'new_album',
+                        label: 'Novo álbum',
+                        icon: Icons.photo_album_outlined,
+                        onTap: () async {
+                          await controller.goToNewAlbum(context, widget.id);
+                          await controller.fetchAlbumsByGroupId(widget.id).then(
+                            (_) {
+                              setState(() {});
+                            },
+                          );
+                        },
+                      ),
+                    PopupMenuItemData(
+                      value: 'membros',
+                      label: 'Membros',
+                      icon: Icons.people,
+                      onTap: () async {
+                        await controller.goToGroupMembers(
+                          context,
+                          controller.group,
+                          isUserAdmin,
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 8),
+              ],
+            ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => Camera(albums: controller.albums),
+      floatingActionButton: isSelectionMode
+          ? null
+          : FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => Camera(albums: controller.albums),
+                  ),
+                );
+              },
+              child: const Icon(Icons.camera_alt),
             ),
-          );
-        },
-        child: Icon(Icons.camera_alt),
-      ),
       body: controller.albums.isNotEmpty
           ? SingleChildScrollView(
               child: GridView.builder(
@@ -118,16 +227,71 @@ class _GroupDetailsState extends State<GroupDetails> {
                 ),
                 itemBuilder: (context, index) {
                   final album = controller.albums[index];
-                  return AlbumCard(
-                    album: album,
+                  final isSelected = selectedAlbumIds.contains(album.id);
+
+                  return GestureDetector(
                     onTap: () {
-                      controller.goToAlbumDetails(context, album.id!);
+                      if (isSelectionMode) {
+                        _toggleAlbumSelection(album.id!);
+                      } else {
+                        controller.goToAlbumDetails(context, album.id!);
+                      }
                     },
+                    onLongPress: () {
+                      if (!isSelectionMode && isUserAdmin) {
+                        setState(() {
+                          isSelectionMode = true;
+                          selectedAlbumIds.add(album.id!);
+                        });
+                      }
+                    },
+                    child: Stack(
+                      children: [
+                        AlbumCard(
+                          album: album,
+                          onTap: () {
+                            if (isSelectionMode) {
+                              _toggleAlbumSelection(album.id!);
+                            } else {
+                              controller.goToAlbumDetails(context, album.id!);
+                            }
+                          },
+                        ),
+                        if (isSelectionMode)
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isSelected
+                                    ? Theme.of(context).primaryColor
+                                    : Colors.white.withOpacity(0.7),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? Theme.of(context).primaryColor
+                                      : Colors.grey,
+                                  width: 2,
+                                ),
+                              ),
+                              child: isSelected
+                                  ? const Icon(
+                                      Icons.check,
+                                      size: 16,
+                                      color: Colors.white,
+                                    )
+                                  : null,
+                            ),
+                          ),
+                      ],
+                    ),
                   );
                 },
               ),
             )
-          : Center(
+          : const Center(
               child: Text("Não há álbuns", style: TextStyle(fontSize: 20)),
             ),
     );

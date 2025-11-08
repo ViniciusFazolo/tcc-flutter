@@ -74,4 +74,9 @@ class GroupDetailsController {
 
     return false;
   }
+
+  Future<void> deleteAlbums(List<String> ids) async {
+    final service = AlbumService(baseUrl: apiBaseUrl);
+    await service.deleteAlbums(ids);
+  }
 }
