@@ -179,20 +179,6 @@ class _GroupDetailsState extends State<GroupDetails> {
               children: [
                 CustomPopupMenu(
                   items: [
-                    if (isUserAdmin)
-                      PopupMenuItemData(
-                        value: 'new_album',
-                        label: 'Novo álbum',
-                        icon: Icons.photo_album_outlined,
-                        onTap: () async {
-                          await controller.goToNewAlbum(context, widget.id);
-                          await controller.fetchAlbumsByGroupId(widget.id).then(
-                            (_) {
-                              setState(() {});
-                            },
-                          );
-                        },
-                      ),
                     PopupMenuItemData(
                       value: 'membros',
                       label: 'Membros',
@@ -214,16 +200,34 @@ class _GroupDetailsState extends State<GroupDetails> {
       ),
       floatingActionButton: isSelectionMode
           ? null
-          : FloatingActionButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => Camera(albums: controller.albums),
+          : Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              spacing: 10,
+              children: [
+                FloatingActionButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Camera(albums: controller.albums),
+                      ),
+                    );
+                  },
+                  child: const Icon(Icons.camera_alt),
+                ),
+                if (isUserAdmin)
+                  FloatingActionButton(
+                    onPressed: () async {
+                      await controller.goToNewAlbum(context, widget.id);
+                      await controller.fetchAlbumsByGroupId(widget.id).then((
+                        _,
+                      ) {
+                        setState(() {});
+                      });
+                    },
+                    child: const Icon(Icons.add_to_photos),
                   ),
-                );
-              },
-              child: const Icon(Icons.camera_alt),
+              ],
             ),
       body: Stack(
         children: [
@@ -315,7 +319,8 @@ class _GroupDetailsState extends State<GroupDetails> {
                 ),
           LoadingOverlay(
             isLoading: isDeletingAlbums,
-            message: "Aguarde, o(s) album(ns) selecionados estão sendo excluídos...",
+            message:
+                "Aguarde, o(s) album(ns) selecionados estão sendo excluídos...",
           ),
         ],
       ),
