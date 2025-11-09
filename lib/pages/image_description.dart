@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:tcc_flutter/controller/image_description_controller.dart';
+import 'package:tcc_flutter/utils/widget/loading_overlay.dart';
 
 // Importe sua classe Album
 // import 'package:tcc_flutter/domain/album.dart';
@@ -51,7 +52,7 @@ class _ImageDescriptionScreenState extends State<ImageDescription> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+          onPressed: _isLoading ? null : () => Navigator.pop(context),
         ),
         title: const Text(
           'Adicionar Fotos',
@@ -117,6 +118,7 @@ class _ImageDescriptionScreenState extends State<ImageDescription> {
                   controller: _descriptionController,
                   maxLines: 4,
                   maxLength: 500,
+                  enabled: !_isLoading,
                   decoration: InputDecoration(
                     hintText: 'Adicione uma descrição para suas fotos...',
                     hintStyle: TextStyle(color: Colors.grey[400]),
@@ -188,11 +190,13 @@ class _ImageDescriptionScreenState extends State<ImageDescription> {
                       child: Text(album.name ?? ''),
                     );
                   }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedAlbum = value;
-                    });
-                  },
+                  onChanged: _isLoading
+                      ? null
+                      : (value) {
+                          setState(() {
+                            _selectedAlbum = value;
+                          });
+                        },
                 ),
                 const SizedBox(height: 100), // Espaço para o botão fixo
               ],
@@ -229,26 +233,21 @@ class _ImageDescriptionScreenState extends State<ImageDescription> {
                   elevation: 0,
                   disabledBackgroundColor: Colors.grey[300],
                 ),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
-                          ),
-                        ),
-                      )
-                    : Text(
-                        'Publicar ${widget.imagePaths.length} foto${widget.imagePaths.length > 1 ? 's' : ''}',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                child: Text(
+                  'Publicar ${widget.imagePaths.length} foto${widget.imagePaths.length > 1 ? 's' : ''}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
+          ),
+
+          LoadingOverlay(
+            isLoading: _isLoading,
+            message:
+                "Aguarde, estamos publicando ${widget.imagePaths.length} foto${widget.imagePaths.length > 1 ? 's' : ''}...",
           ),
         ],
       ),
