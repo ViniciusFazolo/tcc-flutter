@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -15,9 +16,11 @@ class LoginController {
 
     String body = json.encode(data);
 
+    String url = Platform.isAndroid ? "http://10.0.2.2:8080" : "http://localhost:8080";
+
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:8080/auth/login'),
+        Uri.parse('$url/auth/login'),
         body: body,
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',

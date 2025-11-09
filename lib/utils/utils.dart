@@ -1,10 +1,11 @@
 // lib/utils.dart
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
-final String apiBaseUrl = "http://localhost:8080/api";
-
+  
+final String apiBaseUrl = Platform.isAndroid ? "http://10.0.2.2:8080" : "http://localhost:8080";
+  
 Future<Map<String, String>?> findCep(String cep) async {
   if (cep.isEmpty) return null;
 
