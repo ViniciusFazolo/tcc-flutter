@@ -7,12 +7,18 @@ import 'package:tcc_flutter/domain/user_group.dart';
 import 'package:tcc_flutter/utils/prefs.dart';
 import 'package:tcc_flutter/utils/widget/custom_popup_menu.dart';
 import 'package:tcc_flutter/utils/widget/input.dart';
+import 'package:tcc_flutter/utils/widget/loading_overlay.dart';
 
 class GroupMembers extends StatefulWidget {
   final Group group;
   final User admin;
   final bool isUserAdmin;
-  const GroupMembers({super.key, required this.group, required this.admin, required this.isUserAdmin});
+  const GroupMembers({
+    super.key,
+    required this.group,
+    required this.admin,
+    required this.isUserAdmin,
+  });
 
   @override
   State<GroupMembers> createState() => _GroupMembersState();
@@ -21,6 +27,7 @@ class GroupMembers extends StatefulWidget {
 class _GroupMembersState extends State<GroupMembers> {
   final GroupMembersController controller = GroupMembersController();
   bool isLoading = true;
+  bool isLeavingGroup = false;
   String? errorMessage;
   List<GroupInvite> pendingInvites = [];
   String userIdLogged = "";
@@ -144,18 +151,39 @@ class _GroupMembersState extends State<GroupMembers> {
   }
 
   Future<void> _leaveGroup() async {
-    if(widget.group.userGroups != null) {
-      if(widget.group.userGroups!.length > 1 && userIdLogged == currentAdmin.id) {
+    if (widget.group.userGroups != null) {
+      if (widget.group.userGroups!.length > 1 &&
+          userIdLogged == currentAdmin.id) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Promova um membro como dono do grupo antes de sair"),
             backgroundColor: Colors.red,
           ),
         );
-      }else{
-        controller.leaveGroup(context, widget.group.id!);
+      } else {
+        setState(() {
+          isLeavingGroup = true;
+        });
+
+        try {
+          await controller.leaveGroup(context, widget.group.id!);
+        } finally {
+          if (mounted) {
+            setState(() {
+              isLeavingGroup = false;
+            });
+          }
+        }
       }
     }
+  }
+
+  String _getLeaveGroupMessage() {
+    if (widget.group.userGroups != null &&
+        widget.group.userGroups!.length == 1) {
+      return "Aguarde, o grupo está sendo deletado...";
+    }
+    return "Aguarde, estamos te removendo do grupo...";
   }
 
   @override
@@ -173,9 +201,7 @@ class _GroupMembersState extends State<GroupMembers> {
                     label: 'Sair do grupo',
                     icon: Icons.logout_rounded,
                     onTap: () async {
-                      await confirmLeaveGroup(
-                        context,
-                      );
+                      await confirmLeaveGroup(context);
                     },
                   ),
                 ],
@@ -193,33 +219,41 @@ class _GroupMembersState extends State<GroupMembers> {
               },
             )
           : null,
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : errorMessage != null
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    errorMessage!,
-                    style: const TextStyle(color: Colors.red),
-                    textAlign: TextAlign.center,
+      body: Stack(
+        children: [
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : errorMessage != null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        errorMessage!,
+                        style: const TextStyle(color: Colors.red),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            isLoading = true;
+                            errorMessage = null;
+                          });
+                          _loadData();
+                        },
+                        child: const Text('Tentar novamente'),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        isLoading = true;
-                        errorMessage = null;
-                      });
-                      _loadData();
-                    },
-                    child: const Text('Tentar novamente'),
-                  ),
-                ],
-              ),
-            )
-          : _buildMembersList(),
+                )
+              : _buildMembersList(),
+          LoadingOverlay(
+            isLoading: isLeavingGroup,
+            message: _getLeaveGroupMessage(),
+          ),
+        ],
+      ),
     );
   }
 
@@ -346,10 +380,10 @@ class _GroupMembersState extends State<GroupMembers> {
     );
   }
 
-  Future<bool?> confirmLeaveGroup(
-    BuildContext context,
-  ) async {
-    final String title = widget.group.userGroups!.length >= 2 ? "Realmente deseja sair do grupo?" : "Realmente deseja sair? Imagens serão permanentemente deletadas";
+  Future<bool?> confirmLeaveGroup(BuildContext context) async {
+    final String title = widget.group.userGroups!.length >= 2
+        ? "Realmente deseja sair do grupo?"
+        : "Realmente deseja sair? Imagens serão permanentemente deletadas";
 
     return showDialog<bool>(
       context: context,
@@ -551,7 +585,12 @@ class _GroupMembersState extends State<GroupMembers> {
                 InkWell(
                   onTap: () async {
                     String name = userGroup.user?.name ?? "";
-                    await _confirmPromoteToGroupOwner(context, "Tem certeza que deseja adicionar $name como dono do grupo?", "", userGroup.user!);
+                    await _confirmPromoteToGroupOwner(
+                      context,
+                      "Tem certeza que deseja adicionar $name como dono do grupo?",
+                      "",
+                      userGroup.user!,
+                    );
                   },
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
