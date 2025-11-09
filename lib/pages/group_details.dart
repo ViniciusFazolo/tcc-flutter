@@ -3,6 +3,7 @@ import 'package:tcc_flutter/controller/group_details_controller.dart';
 import 'package:tcc_flutter/pages/camera.dart';
 import 'package:tcc_flutter/utils/widget/album_card.dart';
 import 'package:tcc_flutter/utils/widget/custom_popup_menu.dart';
+import 'package:tcc_flutter/utils/widget/loading_overlay.dart';
 
 class GroupDetails extends StatefulWidget {
   final String id;
@@ -16,6 +17,7 @@ class _GroupDetailsState extends State<GroupDetails> {
   final GroupDetailsController controller = GroupDetailsController();
   bool isLoading = true;
   bool isUserAdmin = false;
+  bool isDeletingAlbums = false;
 
   bool isSelectionMode = false;
   List<String> selectedAlbumIds = [];
@@ -81,14 +83,19 @@ class _GroupDetailsState extends State<GroupDetails> {
     );
 
     if (confirmed == true) {
+      setState(() {
+        isDeletingAlbums = true;
+      });
+
       try {
         await controller.deleteAlbums(selectedAlbumIds);
 
         setState(() {
           isSelectionMode = false;
           selectedAlbumIds.clear();
-          _loadGroup();
         });
+
+        await _loadGroup();
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -100,6 +107,12 @@ class _GroupDetailsState extends State<GroupDetails> {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text('Erro ao excluir álbuns: $e')));
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            isDeletingAlbums = false;
+          });
         }
       }
     }
@@ -212,88 +225,100 @@ class _GroupDetailsState extends State<GroupDetails> {
               },
               child: const Icon(Icons.camera_alt),
             ),
-      body: controller.albums.isNotEmpty
-          ? SingleChildScrollView(
-              child: GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(16),
-                itemCount: controller.albums.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  childAspectRatio: 0.8,
-                ),
-                itemBuilder: (context, index) {
-                  final album = controller.albums[index];
-                  final isSelected = selectedAlbumIds.contains(album.id);
-
-                  return GestureDetector(
-                    onTap: () {
-                      if (isSelectionMode) {
-                        _toggleAlbumSelection(album.id!);
-                      } else {
-                        controller.goToAlbumDetails(context, album.id!);
-                      }
-                    },
-                    onLongPress: () {
-                      if (!isSelectionMode && isUserAdmin) {
-                        setState(() {
-                          isSelectionMode = true;
-                          selectedAlbumIds.add(album.id!);
-                        });
-                      }
-                    },
-                    child: Stack(
-                      children: [
-                        AlbumCard(
-                          album: album,
-                          onTap: () {
-                            if (isSelectionMode) {
-                              _toggleAlbumSelection(album.id!);
-                            } else {
-                              controller.goToAlbumDetails(context, album.id!);
-                            }
-                          },
+      body: Stack(
+        children: [
+          controller.albums.isNotEmpty
+              ? SingleChildScrollView(
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
+                    itemCount: controller.albums.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          childAspectRatio: 0.8,
                         ),
-                        if (isSelectionMode)
-                          Positioned(
-                            top: 8,
-                            right: 8,
-                            child: Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: isSelected
-                                    ? Theme.of(context).primaryColor
-                                    : Colors.white.withOpacity(0.7),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? Theme.of(context).primaryColor
-                                      : Colors.grey,
-                                  width: 2,
+                    itemBuilder: (context, index) {
+                      final album = controller.albums[index];
+                      final isSelected = selectedAlbumIds.contains(album.id);
+
+                      return GestureDetector(
+                        onTap: () {
+                          if (isSelectionMode) {
+                            _toggleAlbumSelection(album.id!);
+                          } else {
+                            controller.goToAlbumDetails(context, album.id!);
+                          }
+                        },
+                        onLongPress: () {
+                          if (!isSelectionMode && isUserAdmin) {
+                            setState(() {
+                              isSelectionMode = true;
+                              selectedAlbumIds.add(album.id!);
+                            });
+                          }
+                        },
+                        child: Stack(
+                          children: [
+                            AlbumCard(
+                              album: album,
+                              onTap: () {
+                                if (isSelectionMode) {
+                                  _toggleAlbumSelection(album.id!);
+                                } else {
+                                  controller.goToAlbumDetails(
+                                    context,
+                                    album.id!,
+                                  );
+                                }
+                              },
+                            ),
+                            if (isSelectionMode)
+                              Positioned(
+                                top: 8,
+                                right: 8,
+                                child: Container(
+                                  width: 24,
+                                  height: 24,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: isSelected
+                                        ? Theme.of(context).primaryColor
+                                        : Colors.white.withOpacity(0.7),
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? Theme.of(context).primaryColor
+                                          : Colors.grey,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: isSelected
+                                      ? const Icon(
+                                          Icons.check,
+                                          size: 16,
+                                          color: Colors.white,
+                                        )
+                                      : null,
                                 ),
                               ),
-                              child: isSelected
-                                  ? const Icon(
-                                      Icons.check,
-                                      size: 16,
-                                      color: Colors.white,
-                                    )
-                                  : null,
-                            ),
-                          ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            )
-          : const Center(
-              child: Text("Não há álbuns", style: TextStyle(fontSize: 20)),
-            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                )
+              : const Center(
+                  child: Text("Não há álbuns", style: TextStyle(fontSize: 20)),
+                ),
+          LoadingOverlay(
+            isLoading: isDeletingAlbums,
+            message: "Aguarde, o(s) album(ns) selecionados estão sendo excluídos...",
+          ),
+        ],
+      ),
     );
   }
 }
