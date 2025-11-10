@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:tcc_flutter/pages/group_details.dart';
 import 'package:tcc_flutter/pages/home.dart';
 import 'package:tcc_flutter/service/publish_service.dart';
 import 'package:tcc_flutter/utils/prefs.dart';
@@ -39,6 +38,7 @@ class ImageDescriptionController {
         albumId: selectedAlbum,
         authorId: authorId,
         imagens: imageFiles,
+        description: description
       );
 
       if (context.mounted) {
