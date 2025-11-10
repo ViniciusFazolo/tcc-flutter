@@ -254,7 +254,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                           if (isSelectionMode) {
                             _toggleAlbumSelection(album.id!);
                           } else {
-                            controller.goToAlbumDetails(context, album.id!);
+                            controller.goToAlbumDetails(context, album.id!, isUserAdmin);
                           }
                         },
                         onLongPress: () {
@@ -276,6 +276,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                                   controller.goToAlbumDetails(
                                     context,
                                     album.id!,
+                                    isUserAdmin
                                   );
                                 }
                               },

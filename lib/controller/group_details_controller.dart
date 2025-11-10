@@ -32,10 +32,10 @@ class GroupDetailsController {
     return res;
   }
 
-  goToAlbumDetails(BuildContext context, String albumId) {
+  goToAlbumDetails(BuildContext context, String albumId, bool isUserAdmin) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => Publish(albumId: albumId)),
+      MaterialPageRoute(builder: (context) => Publish(albumId: albumId, isUserAdmin: isUserAdmin,)),
     );
   }
 

@@ -4,12 +4,15 @@ import 'package:tcc_flutter/utils/utils.dart';
 
 class PublishController {
   List<Publish> publishs = [];
+  final PublishService publishService = PublishService(
+    baseUrl: "$apiBaseUrl/publish",
+  );
 
   Future<void> fetchPublishsByAlbumId(String albumId) async {
-    final PublishService publishService = PublishService(
-      baseUrl: "$apiBaseUrl/publish",
-    );
-
     publishs = await publishService.getList(albumId);
+  }
+
+  Future<void> delete(String id) async {
+    await publishService.deleteItem(id);
   }
 }
