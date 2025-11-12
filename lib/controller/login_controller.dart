@@ -16,7 +16,7 @@ class LoginController {
 
     String body = json.encode(data);
 
-    String url = Platform.isAndroid ? "http://10.0.2.2:8080" : "http://localhost:8080";
+    String url = Platform.isAndroid ? "http://10.0.2.2:8080/api" : "http://localhost:8080/api";
 
     try {
       final response = await http.post(
