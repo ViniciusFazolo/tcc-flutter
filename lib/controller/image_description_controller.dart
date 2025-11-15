@@ -34,11 +34,11 @@ class ImageDescriptionController {
           .map((path) => XFile(path))
           .toList();
 
-      publishService.submit(
+      await publishService.submit(
         albumId: selectedAlbum,
         authorId: authorId,
         imagens: imageFiles,
-        description: description
+        description: description,
       );
 
       if (context.mounted) {
