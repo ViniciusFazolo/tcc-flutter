@@ -161,7 +161,7 @@ class _HomeState extends State<Home> {
                                 // Atualiza localmente o contador para 0
                                 setState(() {
                                   group.userGroups![0].totalNotifies = 0;
-                                  group.userGroups![0].hourLastPublish = "";
+                                  // group.userGroups![0].hourLastPublish = "";
                                 });
                               }
                               controller.goToGroupById(context, group.id!);

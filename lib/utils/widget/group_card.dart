@@ -46,16 +46,16 @@ class GroupCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  if (timeLastPublish != null)
-                    Text(
-                      timeLastPublish!,
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  const SizedBox(height: 4),
+                  // if (timeLastPublish != null)
+                  //   Text(
+                  //     timeLastPublish!,
+                  //     style: TextStyle(
+                  //       color: Colors.grey[600],
+                  //       fontSize: 12,
+                  //       fontWeight: FontWeight.w600,
+                  //     ),
+                  //   ),
+                  // const SizedBox(height: 4),
                   if (notifications > 0)
                     Container(
                       height: 25,
