@@ -100,28 +100,26 @@ class _HomeState extends State<Home> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.group_add),
-        onPressed: () async {
-          final wasCreated = await controller.goToNewGroup(context);
+      floatingActionButton: 
+        controller.groups.isNotEmpty ? 
+          FloatingActionButton(
+            child: Icon(Icons.group_add),
+            onPressed: () async {
+              final wasCreated = await controller.goToNewGroup(context);
 
-          if (wasCreated) {
-            await controller.fetchGroupsByUserId();
-            setState(() {});
-          }
-        },
-      ),
+              if (wasCreated) {
+                await controller.fetchGroupsByUserId();
+                setState(() {});
+              }
+            },
+          ) 
+          : null,
       body: Container(
         color: Colors.grey[100],
         width: double.infinity,
         padding: const EdgeInsets.all(8),
         child: controller.groups.isEmpty
-            ? const Center(
-                child: Text(
-                  'Nenhum grupo encontrado',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
-                ),
-              )
+            ? _buildEmptyState()
             : SizedBox(
                 height: double.infinity,
                 child: SingleChildScrollView(
@@ -155,6 +153,49 @@ class _HomeState extends State<Home> {
                   ),
                 ),
               ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.groups_outlined, size: 80, color: Colors.grey[300]),
+          const SizedBox(height: 16),
+          Text(
+            'Nenhum grupo ainda',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Crie um novo grupo para começar',
+            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () async {
+              final wasCreated = await controller.goToNewGroup(context);
+              if (wasCreated) {
+                await controller.fetchGroupsByUserId();
+                setState(() {});
+              }
+            },
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('Criar grupo'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
