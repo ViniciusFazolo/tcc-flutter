@@ -14,6 +14,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   final HomeController controller = HomeController();
   List<GroupInvite> notifications = [];
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -29,7 +30,9 @@ class _HomeState extends State<Home> {
 
   getGroups() async {
     await controller.fetchGroupsByUserId();
-    setState(() {});
+    setState(() {
+      isLoading = false;
+    });
   }
 
   @override
@@ -100,60 +103,68 @@ class _HomeState extends State<Home> {
           ),
         ],
       ),
-      floatingActionButton: 
-        controller.groups.isNotEmpty ? 
-          FloatingActionButton(
-            child: Icon(Icons.group_add),
-            onPressed: () async {
-              final wasCreated = await controller.goToNewGroup(context);
+      floatingActionButton: controller.groups.isNotEmpty
+          ? FloatingActionButton(
+              child: Icon(Icons.group_add),
+              onPressed: () async {
+                final wasCreated = await controller.goToNewGroup(context);
 
-              if (wasCreated) {
-                await controller.fetchGroupsByUserId();
-                setState(() {});
-              }
-            },
-          ) 
+                if (wasCreated) {
+                  await controller.fetchGroupsByUserId();
+                  setState(() {});
+                }
+              },
+            )
           : null,
-      body: Container(
-        color: Colors.grey[100],
-        width: double.infinity,
-        padding: const EdgeInsets.all(8),
-        child: controller.groups.isEmpty
-            ? _buildEmptyState()
-            : SizedBox(
-                height: double.infinity,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: controller.groups
-                        .map(
-                          (group) => GroupCard(
-                            imageUrl: group.image!,
-                            groupName: group.name!,
-                            timeLastPublish: controller.formatHour(
-                              group.userGroups?.isNotEmpty == true
-                                  ? group.userGroups![0].hourLastPublish
-                                  : null,
-                            ),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : Container(
+              color: Colors.grey[100],
+              width: double.infinity,
+              padding: const EdgeInsets.all(8),
+              child: controller.groups.isEmpty
+                  ? _buildEmptyState()
+                  : SizedBox(
+                      height: double.infinity,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: controller.groups
+                              .map(
+                                (group) => GroupCard(
+                                  imageUrl: group.image!,
+                                  groupName: group.name!,
+                                  timeLastPublish: controller.formatHour(
+                                    group.userGroups?.isNotEmpty == true
+                                        ? group.userGroups![0].hourLastPublish
+                                        : null,
+                                  ),
 
-                            notifications:
-                                (group.userGroups != null &&
-                                    group.userGroups!.isNotEmpty)
-                                ? group.userGroups![0].totalNotifies
-                                : 0,
-                            onTap: () {
-                              if (group.userGroups![0].totalNotifies > 0) {
-                                controller.resetGroupNotify(context, group.id!);
-                              }
-                              controller.goToGroupById(context, group.id!);
-                            },
-                          ),
-                        )
-                        .toList(),
-                  ),
-                ),
-              ),
-      ),
+                                  notifications:
+                                      (group.userGroups != null &&
+                                          group.userGroups!.isNotEmpty)
+                                      ? group.userGroups![0].totalNotifies
+                                      : 0,
+                                  onTap: () {
+                                    if (group.userGroups![0].totalNotifies >
+                                        0) {
+                                      controller.resetGroupNotify(
+                                        context,
+                                        group.id!,
+                                      );
+                                    }
+                                    controller.goToGroupById(
+                                      context,
+                                      group.id!,
+                                    );
+                                  },
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      ),
+                    ),
+            ),
     );
   }
 
