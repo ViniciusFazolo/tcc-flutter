@@ -7,7 +7,7 @@ import 'package:tcc_flutter/pages/home.dart';
 import 'package:tcc_flutter/utils/prefs.dart';
 
 class LoginController {
-  Future login(
+  Future<void> login(
     BuildContext context, {
     required String login,
     required String pw,
@@ -16,7 +16,9 @@ class LoginController {
 
     String body = json.encode(data);
 
-    String url = Platform.isAndroid ? "http://10.0.2.2:8080/api" : "http://localhost:8080/api";
+    String url = Platform.isAndroid
+        ? "http://10.0.2.2:8080/api"
+        : "http://localhost:8080/api";
 
     try {
       final response = await http.post(
@@ -41,12 +43,9 @@ class LoginController {
         Prefs.setString("id", id);
 
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Login efetuado com sucesso")),
-          );
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => Home()),
+            MaterialPageRoute(builder: (context) => const Home()),
           );
         }
       } else {
