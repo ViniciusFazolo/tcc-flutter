@@ -124,44 +124,41 @@ class _HomeState extends State<Home> {
               padding: const EdgeInsets.all(8),
               child: controller.groups.isEmpty
                   ? _buildEmptyState()
-                  : SizedBox(
-                      height: double.infinity,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: controller.groups
-                              .map(
-                                (group) => GroupCard(
-                                  imageUrl: group.image!,
-                                  groupName: group.name!,
-                                  timeLastPublish: controller.formatHour(
-                                    group.userGroups?.isNotEmpty == true
-                                        ? group.userGroups![0].hourLastPublish
-                                        : null,
-                                  ),
-
-                                  notifications:
-                                      (group.userGroups != null &&
-                                          group.userGroups!.isNotEmpty)
-                                      ? group.userGroups![0].totalNotifies
-                                      : 0,
-                                  onTap: () {
-                                    if (group.userGroups![0].totalNotifies >
-                                        0) {
-                                      controller.resetGroupNotify(
-                                        context,
-                                        group.id!,
-                                      );
-                                    }
-                                    controller.goToGroupById(
-                                      context,
-                                      group.id!,
-                                    );
-                                  },
-                                ),
-                              )
-                              .toList(),
+                  : RefreshIndicator(
+                      onRefresh: () async {
+                        await getGroups();
+                      },
+                      child: ListView.separated(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        itemCount: controller.groups.length,
+                        separatorBuilder: (context, index) => const Divider(
+                          height: 1,
+                          indent: 88,
+                          thickness: 0.5,
                         ),
+                        itemBuilder: (context, index) {
+                          final group = controller.groups[index];
+                          return GroupCard(
+                            imageUrl: group.image!,
+                            groupName: group.name!,
+                            timeLastPublish: controller.formatHour(
+                              group.userGroups?.isNotEmpty == true
+                                  ? group.userGroups![0].hourLastPublish
+                                  : null,
+                            ),
+                            notifications:
+                                (group.userGroups != null &&
+                                    group.userGroups!.isNotEmpty)
+                                ? group.userGroups![0].totalNotifies
+                                : 0,
+                            onTap: () {
+                              if (group.userGroups![0].totalNotifies > 0) {
+                                controller.resetGroupNotify(context, group.id!);
+                              }
+                              controller.goToGroupById(context, group.id!);
+                            },
+                          );
+                        },
                       ),
                     ),
             ),
