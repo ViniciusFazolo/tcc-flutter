@@ -204,18 +204,19 @@ class _GroupDetailsState extends State<GroupDetails> {
               mainAxisAlignment: MainAxisAlignment.end,
               spacing: 10,
               children: [
-                FloatingActionButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => Camera(albums: controller.albums),
-                      ),
-                    );
-                  },
-                  child: const Icon(Icons.camera_alt),
-                ),
-                if (isUserAdmin)
+                if(controller.albums.isNotEmpty)
+                  FloatingActionButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Camera(albums: controller.albums),
+                        ),
+                      );
+                    },
+                    child: const Icon(Icons.camera_alt),
+                  ),
+                if (isUserAdmin && controller.albums.isNotEmpty)
                   FloatingActionButton(
                     onPressed: () async {
                       await controller.goToNewAlbum(context, widget.id);
@@ -319,16 +320,53 @@ class _GroupDetailsState extends State<GroupDetails> {
                     },
                   ),
                 )
-              : const Center(
-                  child: Text(
-                    'Nenhum álbum encontrado',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                ),
+              : _buildEmptyState(),
           LoadingOverlay(
             isLoading: isDeletingAlbums,
             message:
                 "Aguarde, o(s) album(ns) selecionados estão sendo excluídos...",
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.photo_album, size: 80, color: Colors.grey[300]),
+          const SizedBox(height: 16),
+          Text(
+            'Nenhum álbum ainda',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Crie um novo álbum para começar',
+            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () async {
+              await controller.goToNewAlbum(context, widget.id);
+              await controller.fetchAlbumsByGroupId(widget.id).then((_) {
+                setState(() {});
+              });
+            },
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('Criar álbum'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
+            ),
           ),
         ],
       ),
