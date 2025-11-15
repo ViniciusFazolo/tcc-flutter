@@ -12,6 +12,7 @@ class Input extends StatefulWidget {
   final List<TextInputFormatter>? inputFormatters;
   final void Function(String)? onChanged;
   final void Function(bool)? onFocusChange;
+  final bool enabled;
 
   const Input({
     super.key,
@@ -25,6 +26,7 @@ class Input extends StatefulWidget {
     this.onChanged,
     this.onFocusChange,
     this.inputFormatters,
+    this.enabled = true
   });
 
   @override
@@ -69,6 +71,7 @@ class _InputState extends State<Input> {
       controller: widget.controller,
       keyboardType: widget.keyboardType,
       obscureText: widget.obscureText,
+      enabled: widget.enabled,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       inputFormatters: widget.inputFormatters,
       validator: (value) {
