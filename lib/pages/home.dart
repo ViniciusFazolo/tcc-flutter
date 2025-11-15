@@ -86,17 +86,6 @@ class _HomeState extends State<Home> {
               CustomPopupMenu(
                 items: [
                   PopupMenuItemData(
-                    value: 'config',
-                    label: 'Novo grupo',
-                    icon: Icons.group_add,
-                    onTap: () async {
-                      await controller.goToNewGroup(context);
-                      await controller.fetchGroupsByUserId().then((_) {
-                        setState(() {});
-                      });
-                    },
-                  ),
-                  PopupMenuItemData(
                     value: 'logout',
                     label: 'Sair',
                     icon: Icons.logout,
@@ -110,6 +99,17 @@ class _HomeState extends State<Home> {
             ],
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.group_add),
+        onPressed: () async {
+          final wasCreated = await controller.goToNewGroup(context);
+
+          if (wasCreated) {
+            await controller.fetchGroupsByUserId();
+            setState(() {});
+          }
+        },
       ),
       body: Container(
         color: Colors.grey[100],

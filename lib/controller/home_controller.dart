@@ -68,11 +68,13 @@ class HomeController {
     );
   }
 
-  Future<void> goToNewGroup(BuildContext context) async {
-    await Navigator.push(
+  Future<bool> goToNewGroup(BuildContext context) async {
+    final result = await Navigator.push<bool>(
       context,
       MaterialPageRoute(builder: (context) => NewGroup()),
     );
+    
+    return result ?? false;
   }
 
   Future<bool?> goToNotifications(BuildContext context) async {

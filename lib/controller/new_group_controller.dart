@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:tcc_flutter/pages/group_details.dart';
 import 'package:tcc_flutter/service/group_service.dart';
 import 'package:tcc_flutter/utils/prefs.dart';
 import 'package:tcc_flutter/utils/utils.dart';
@@ -18,7 +17,7 @@ class NewGroupController {
     final groupService = GroupService(baseUrl: apiBaseUrl);
 
     try {
-      final res = await groupService.postMultipart(
+      await groupService.postMultipart(
         "group",
         {"name": nameController.text, "adm": userId},
         file: image,
@@ -26,10 +25,7 @@ class NewGroupController {
       );
 
       if (context.mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => GroupDetails(id: res.id!)),
-        );
+        Navigator.pop(context, true);
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
