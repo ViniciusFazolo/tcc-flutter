@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:tcc_flutter/controller/publish_controller.dart';
+import 'package:tcc_flutter/pages/image_viewer.dart';
 import 'package:tcc_flutter/utils/prefs.dart';
 import 'package:tcc_flutter/utils/widget/custom_popup_menu.dart';
 import 'package:tcc_flutter/utils/widget/loading_overlay.dart';
@@ -63,7 +64,6 @@ class _PublishState extends State<Publish> {
 
       try {
         await controller.delete(id);
-
         await controller.fetchPublishsByAlbumId(widget.albumId);
 
         if (mounted) {
@@ -88,15 +88,25 @@ class _PublishState extends State<Publish> {
     }
   }
 
+  void _openImageViewer(List<String> images, int initialIndex) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            ImageViewer(images: images, initialIndex: initialIndex),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Fotos")),
+      appBar: AppBar(title: const Text("Fotos")),
       body: Stack(
         children: [
           controller.publishs.isNotEmpty
               ? SingleChildScrollView(
-                  child: Container(
+                  child: SizedBox(
                     width: double.infinity,
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -124,13 +134,15 @@ class _PublishState extends State<Publish> {
                                         children: [
                                           Text(
                                             pub.author!.name!,
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               fontWeight: FontWeight.w600,
                                               color: Colors.black87,
                                             ),
                                           ),
                                           Text(
-                                            style: TextStyle(fontSize: 12),
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                            ),
                                             DateFormat(
                                               "dd/MM/yyyy HH:mm",
                                             ).format(
@@ -154,13 +166,14 @@ class _PublishState extends State<Publish> {
                                       ),
                                   ],
                                 ),
-                                pub.description != null
-                                    ? Text(pub.description!)
-                                    : SizedBox(height: 0),
+                                if (pub.description != null)
+                                  Text(pub.description!)
+                                else
+                                  const SizedBox(height: 0),
                                 if (pub.images != null &&
                                     pub.images!.isNotEmpty)
                                   SizedBox(
-                                    height: 200, // altura do carrossel
+                                    height: 200,
                                     width: double.infinity,
                                     child: PageView.builder(
                                       itemCount: pub.images!.length,
@@ -169,15 +182,26 @@ class _PublishState extends State<Publish> {
                                           padding: const EdgeInsets.symmetric(
                                             horizontal: 2,
                                           ),
-                                          child: Container(
-                                            color: Colors.black87,
-                                            child: ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                              child: Image.network(
-                                                pub.images![index].image!,
-                                                fit: BoxFit.contain,
-                                                width: double.infinity,
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              final imageUrls = pub.images!
+                                                  .map((img) => img.image!)
+                                                  .toList();
+                                              _openImageViewer(
+                                                imageUrls,
+                                                index,
+                                              );
+                                            },
+                                            child: Container(
+                                              color: Colors.black87,
+                                              child: ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                child: Image.network(
+                                                  pub.images![index].image!,
+                                                  fit: BoxFit.contain,
+                                                  width: double.infinity,
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -193,7 +217,7 @@ class _PublishState extends State<Publish> {
                     ),
                   ),
                 )
-              : Center(
+              : const Center(
                   child: Text(
                     'Nenhuma foto encontrada',
                     style: TextStyle(fontSize: 16, color: Colors.grey),
