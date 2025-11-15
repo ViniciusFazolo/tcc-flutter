@@ -194,7 +194,10 @@ class _PublishState extends State<Publish> {
                   ),
                 )
               : Center(
-                  child: Text("Não há fotos", style: TextStyle(fontSize: 20)),
+                  child: Text(
+                    'Nenhuma foto encontrada',
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
                 ),
           LoadingOverlay(
             isLoading: isDeletingImage,

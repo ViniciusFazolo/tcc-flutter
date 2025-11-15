@@ -254,7 +254,11 @@ class _GroupDetailsState extends State<GroupDetails> {
                           if (isSelectionMode) {
                             _toggleAlbumSelection(album.id!);
                           } else {
-                            controller.goToAlbumDetails(context, album.id!, isUserAdmin);
+                            controller.goToAlbumDetails(
+                              context,
+                              album.id!,
+                              isUserAdmin,
+                            );
                           }
                         },
                         onLongPress: () {
@@ -276,7 +280,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                                   controller.goToAlbumDetails(
                                     context,
                                     album.id!,
-                                    isUserAdmin
+                                    isUserAdmin,
                                   );
                                 }
                               },
@@ -316,7 +320,10 @@ class _GroupDetailsState extends State<GroupDetails> {
                   ),
                 )
               : const Center(
-                  child: Text("Não há álbuns", style: TextStyle(fontSize: 20)),
+                  child: Text(
+                    'Nenhum álbum encontrado',
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
                 ),
           LoadingOverlay(
             isLoading: isDeletingAlbums,

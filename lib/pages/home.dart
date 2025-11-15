@@ -118,8 +118,8 @@ class _HomeState extends State<Home> {
         child: controller.groups.isEmpty
             ? const Center(
                 child: Text(
-                  "Nenhum grupo encontrado",
-                  style: TextStyle(fontSize: 20),
+                  'Nenhum grupo encontrado',
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
               )
             : SizedBox(
