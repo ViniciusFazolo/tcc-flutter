@@ -316,11 +316,113 @@ class _PublishState extends State<Publish> {
                               itemCount: commentaries.length,
                               itemBuilder: (context, index) {
                                 final comment = commentaries[index];
-                                return Comment(
-                                  userImage: comment.author.image ?? "",
-                                  userName: comment.author.name!,
-                                  comment: comment.content,
-                                  timestamp: comment.whenSent as DateTime?,
+                                return InkWell(
+                                  onLongPress:
+                                      widget.isUserAdmin ||
+                                          comment.author.id == userIdLogged
+                                      ? () async {
+                                          final confirmed = await showDialog<bool>(
+                                            context: context,
+                                            builder: (context) => AlertDialog(
+                                              title: const Text(
+                                                'Confirmar exclusão',
+                                              ),
+                                              content: const Text(
+                                                'Deseja realmente excluir este comentário?',
+                                              ),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(
+                                                        context,
+                                                        false,
+                                                      ),
+                                                  style: TextButton.styleFrom(
+                                                    foregroundColor:
+                                                        Colors.grey,
+                                                  ),
+                                                  child: const Text('Cancelar'),
+                                                ),
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(
+                                                        context,
+                                                        true,
+                                                      ),
+                                                  style: TextButton.styleFrom(
+                                                    foregroundColor: Colors.red,
+                                                  ),
+                                                  child: const Text('Excluir'),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+
+                                          if (confirmed == true) {
+                                            try {
+                                              await controller.deleteCommentary(
+                                                comment.id,
+                                              );
+                                              final cm = await controller
+                                                  .loadingCommentaries(
+                                                    publishId,
+                                                  );
+
+                                              commentaries = cm;
+
+                                              final pubIndex = controller
+                                                  .publishs
+                                                  .indexWhere(
+                                                    (p) => p.id == publishId,
+                                                  );
+
+                                              if (pubIndex != -1) {
+                                                controller
+                                                        .publishs[pubIndex]
+                                                        .qtCommentary =
+                                                    (controller
+                                                            .publishs[pubIndex]
+                                                            .qtCommentary ??
+                                                        1) -
+                                                    1;
+                                              }
+
+                                              outerSetState(() {});
+                                              setState(() {});
+
+                                              if (context.mounted) {
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  const SnackBar(
+                                                    content: Text(
+                                                      'Comentário excluído com sucesso',
+                                                    ),
+                                                  ),
+                                                );
+                                              }
+                                            } catch (e) {
+                                              if (context.mounted) {
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                      'Erro ao excluir comentário: $e',
+                                                    ),
+                                                  ),
+                                                );
+                                              }
+                                            }
+                                          }
+                                        }
+                                      : null,
+                                  child: Comment(
+                                    userImage: comment.author.image ?? "",
+                                    userName: comment.author.name!,
+                                    comment: comment.content,
+                                    timestamp: comment.whenSent as DateTime?,
+                                  ),
                                 );
                               },
                             ),

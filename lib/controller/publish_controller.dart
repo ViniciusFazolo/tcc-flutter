@@ -42,4 +42,8 @@ class PublishController {
   Future<List<Commentary>> loadingCommentaries(String publishId) {
     return commentaryService.getCommentaryByPublishId(publishId);
   }
+
+  Future<void> deleteCommentary(String commentaryId) async {
+    await commentaryService.deleteItem(commentaryId);
+  }
 }
