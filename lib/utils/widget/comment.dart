@@ -28,22 +28,34 @@ class Comment extends StatelessWidget {
             backgroundColor: Colors.grey[300],
           ),
           const SizedBox(width: 12),
-          
+
           // Conteúdo do comentário
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Nome do usuário
-                Text(
-                  userName,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
+                Row(
+                  spacing: 3,
+                  children: [
+                    Text(
+                      userName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    if (timestamp != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        _formatTimestamp(timestamp!),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ],
                 ),
                 const SizedBox(height: 4),
-                
+
                 // Comentário
                 Text(
                   comment,
@@ -53,18 +65,6 @@ class Comment extends StatelessWidget {
                     height: 1.4,
                   ),
                 ),
-                
-                // Timestamp (opcional)
-                if (timestamp != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    _formatTimestamp(timestamp!),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
