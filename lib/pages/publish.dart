@@ -170,10 +170,9 @@ class _PublishState extends State<Publish> {
                                       ),
                                   ],
                                 ),
-                                if (pub.description != null)
-                                  Text(pub.description!)
-                                else
-                                  const SizedBox(height: 0),
+                                if (pub.description != null &&
+                                    pub.description!.isNotEmpty)
+                                  Text(pub.description!),
                                 if (pub.images != null &&
                                     pub.images!.isNotEmpty)
                                   SizedBox(
@@ -213,30 +212,26 @@ class _PublishState extends State<Publish> {
                                       },
                                     ),
                                   ),
-
                                 GestureDetector(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Row(
-                                      spacing: 5,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.chat_bubble_outline_rounded,
+                                  child: Row(
+                                    spacing: 5,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.chat_bubble_outline_rounded,
+                                        color: Colors.grey[700],
+                                        size: 30,
+                                      ),
+                                      Text(
+                                        pub.qtCommentary.toString(),
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w500,
                                           color: Colors.grey[700],
-                                          size: 32,
                                         ),
-                                        Text(
-                                          pub.qtCommentary.toString(),
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.grey[700],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
                                   onTap: () async {
                                     commentaries = await controller
