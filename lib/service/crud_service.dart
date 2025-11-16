@@ -44,7 +44,7 @@ abstract class CrudService<T> {
   // POST genérico retornando T
   // =======================
   Future<T> postItem(String endpoint, Map<String, dynamic> data) async {
-    final url = Uri.parse('$baseUrl/$endpoint');
+    final url = Uri.parse(endpoint.isEmpty ? baseUrl : '$baseUrl/$endpoint');
     final headers = await _defaultHeaders();
     final response = await http.post(
       url,

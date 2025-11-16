@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:tcc_flutter/controller/publish_controller.dart';
+import 'package:tcc_flutter/domain/commentary.dart';
 import 'package:tcc_flutter/pages/image_viewer.dart';
 import 'package:tcc_flutter/utils/prefs.dart';
+import 'package:tcc_flutter/utils/widget/comment.dart';
 import 'package:tcc_flutter/utils/widget/custom_popup_menu.dart';
 import 'package:tcc_flutter/utils/widget/loading_overlay.dart';
 
@@ -20,6 +22,8 @@ class _PublishState extends State<Publish> {
   bool isLoading = true;
   bool isDeletingImage = false;
   String userIdLogged = "";
+  TextEditingController commentary = TextEditingController();
+  List<Commentary> commentaries = [];
 
   @override
   void initState() {
@@ -209,6 +213,37 @@ class _PublishState extends State<Publish> {
                                       },
                                     ),
                                   ),
+
+                                GestureDetector(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Row(
+                                      spacing: 5,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.chat_bubble_outline_rounded,
+                                          color: Colors.grey[700],
+                                          size: 32,
+                                        ),
+                                        Text(
+                                          pub.qtCommentary.toString(),
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.grey[700],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  onTap: () async {
+                                    commentaries = await controller
+                                        .loadingCommentaries(pub.id!);
+                                    _openCommentaries(pub.id!);
+                                  },
+                                ),
                               ],
                             ),
                           );
@@ -230,5 +265,191 @@ class _PublishState extends State<Publish> {
         ],
       ),
     );
+  }
+
+  _openCommentaries(String publishId) {
+    final outerSetState = (VoidCallback fn) => setState(fn);
+
+    return showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      builder: (context) {
+        final primaryColor = Theme.of(context).colorScheme.primary;
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+            final canSend = commentary.text.trim().isNotEmpty;
+
+            return GestureDetector(
+              onTap: () {
+                FocusScope.of(context).unfocus();
+              },
+              child: FractionallySizedBox(
+                heightFactor: 0.8,
+                child: Column(
+                  children: [
+                    // 1. CABEÇALHO - Título
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Text(
+                        "Comentários",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    Divider(color: Colors.grey[300], height: 1),
+
+                    // 2. MEIO - Lista de comentários
+                    Expanded(
+                      child: commentaries.isEmpty
+                          ? Center(
+                              child: Text(
+                                "Nenhum comentário ainda.",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 14,
+                                ),
+                              ),
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              itemCount: commentaries.length,
+                              itemBuilder: (context, index) {
+                                final comment = commentaries[index];
+                                return Comment(
+                                  userImage: comment.author.image ?? "",
+                                  userName: comment.author.name!,
+                                  comment: comment.content,
+                                  timestamp: comment.whenSent as DateTime?,
+                                );
+                              },
+                            ),
+                    ),
+
+                    // 3. RODAPÉ - Campo de digitar comentário
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border(
+                          top: BorderSide(color: Colors.grey[300]!, width: 1),
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      child: SafeArea(
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: commentary,
+                                onChanged: (value) {
+                                  setState(() {});
+                                },
+                                decoration: InputDecoration(
+                                  hintText: "Adicione um comentário...",
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(24),
+                                    borderSide: BorderSide(
+                                      color: Colors.grey[300]!,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(24),
+                                    borderSide: BorderSide(
+                                      color: Colors.grey[300]!,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(24),
+                                    borderSide: BorderSide(
+                                      color: primaryColor,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.grey[50],
+                                ),
+                                maxLines: null,
+                                textInputAction: TextInputAction.newline,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              onPressed: canSend
+                                  ? () async {
+                                      final res = await controller
+                                          .addCommentary(
+                                            context,
+                                            publishId,
+                                            commentary.text,
+                                          );
+
+                                      if (res) {
+                                        final cm = await controller
+                                            .loadingCommentaries(publishId);
+
+                                        commentaries = cm;
+                                        final index = controller.publishs
+                                            .indexWhere(
+                                              (p) => p.id == publishId,
+                                            );
+
+                                        if (index != -1) {
+                                          controller
+                                                  .publishs[index]
+                                                  .qtCommentary =
+                                              (controller
+                                                      .publishs[index]
+                                                      .qtCommentary ??
+                                                  0) +
+                                              1;
+                                        }
+
+                                        outerSetState(() {});
+                                      }
+
+                                      commentary.clear();
+                                      setState(() {});
+                                    }
+                                  : null,
+                              icon: Icon(
+                                Icons.send_rounded,
+                                color: canSend
+                                    ? primaryColor
+                                    : Colors.grey.shade400,
+                              ),
+                              style: IconButton.styleFrom(
+                                backgroundColor: canSend
+                                    ? primaryColor.withOpacity(0.1)
+                                    : Colors.grey.shade100,
+                                padding: const EdgeInsets.all(12),
+                                disabledBackgroundColor: Colors.grey.shade100,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    ).then((_) {
+      commentary.clear();
+    });
   }
 }
