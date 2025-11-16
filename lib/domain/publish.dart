@@ -8,6 +8,7 @@ class Publish {
   User? author;
   String? whenSent;
   String? album;
+  int? qtCommentary;
 
   Publish({
     this.id,
@@ -16,6 +17,7 @@ class Publish {
     this.author,
     this.whenSent,
     this.album,
+    this.qtCommentary,
   });
 
   factory Publish.fromJson(Map<String, dynamic> json) {
@@ -30,6 +32,7 @@ class Publish {
       author: json["author"] != null ? User.fromJson(json["author"]) : null,
       whenSent: json["whenSent"],
       album: json["album"],
+      qtCommentary: json['qtCommentary'],
     );
   }
 
