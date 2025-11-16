@@ -271,8 +271,6 @@ class _PublishState extends State<Publish> {
       isScrollControlled: true,
       backgroundColor: Colors.white,
       builder: (context) {
-        final primaryColor = Theme.of(context).colorScheme.primary;
-
         return StatefulBuilder(
           builder: (context, setState) {
             final canSend = commentary.text.trim().isNotEmpty;
@@ -286,257 +284,18 @@ class _PublishState extends State<Publish> {
                 child: Column(
                   children: [
                     // 1. CABEÇALHO - Título
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: Text(
-                        "Comentários",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+                    _commentaryHeader(),
                     Divider(color: Colors.grey[300], height: 1),
 
                     // 2. MEIO - Lista de comentários
-                    Expanded(
-                      child: commentaries.isEmpty
-                          ? Center(
-                              child: Text(
-                                "Nenhum comentário ainda.",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 14,
-                                ),
-                              ),
-                            )
-                          : ListView.builder(
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              itemCount: commentaries.length,
-                              itemBuilder: (context, index) {
-                                final comment = commentaries[index];
-                                return InkWell(
-                                  onLongPress:
-                                      widget.isUserAdmin ||
-                                          comment.author.id == userIdLogged
-                                      ? () async {
-                                          final confirmed = await showDialog<bool>(
-                                            context: context,
-                                            builder: (context) => AlertDialog(
-                                              title: const Text(
-                                                'Confirmar exclusão',
-                                              ),
-                                              content: const Text(
-                                                'Deseja realmente excluir este comentário?',
-                                              ),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.pop(
-                                                        context,
-                                                        false,
-                                                      ),
-                                                  style: TextButton.styleFrom(
-                                                    foregroundColor:
-                                                        Colors.grey,
-                                                  ),
-                                                  child: const Text('Cancelar'),
-                                                ),
-                                                TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.pop(
-                                                        context,
-                                                        true,
-                                                      ),
-                                                  style: TextButton.styleFrom(
-                                                    foregroundColor: Colors.red,
-                                                  ),
-                                                  child: const Text('Excluir'),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-
-                                          if (confirmed == true) {
-                                            try {
-                                              await controller.deleteCommentary(
-                                                comment.id,
-                                              );
-                                              final cm = await controller
-                                                  .loadingCommentaries(
-                                                    publishId,
-                                                  );
-
-                                              commentaries = cm;
-
-                                              final pubIndex = controller
-                                                  .publishs
-                                                  .indexWhere(
-                                                    (p) => p.id == publishId,
-                                                  );
-
-                                              if (pubIndex != -1) {
-                                                controller
-                                                        .publishs[pubIndex]
-                                                        .qtCommentary =
-                                                    (controller
-                                                            .publishs[pubIndex]
-                                                            .qtCommentary ??
-                                                        1) -
-                                                    1;
-                                              }
-
-                                              outerSetState(() {});
-                                              setState(() {});
-
-                                              if (context.mounted) {
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
-                                                  const SnackBar(
-                                                    content: Text(
-                                                      'Comentário excluído com sucesso',
-                                                    ),
-                                                  ),
-                                                );
-                                              }
-                                            } catch (e) {
-                                              if (context.mounted) {
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                      'Erro ao excluir comentário: $e',
-                                                    ),
-                                                  ),
-                                                );
-                                              }
-                                            }
-                                          }
-                                        }
-                                      : null,
-                                  child: Comment(
-                                    userImage: comment.author.image ?? "",
-                                    userName: comment.author.name!,
-                                    comment: comment.content,
-                                    timestamp: comment.whenSent as DateTime?,
-                                  ),
-                                );
-                              },
-                            ),
-                    ),
+                    _commentaryContent(publishId, outerSetState),
 
                     // 3. RODAPÉ - Campo de digitar comentário
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border(
-                          top: BorderSide(color: Colors.grey[300]!, width: 1),
-                        ),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      child: SafeArea(
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: commentary,
-                                onChanged: (value) {
-                                  setState(() {});
-                                },
-                                decoration: InputDecoration(
-                                  hintText: "Adicione um comentário...",
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(24),
-                                    borderSide: BorderSide(
-                                      color: Colors.grey[300]!,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(24),
-                                    borderSide: BorderSide(
-                                      color: Colors.grey[300]!,
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(24),
-                                    borderSide: BorderSide(
-                                      color: primaryColor,
-                                      width: 2,
-                                    ),
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 12,
-                                  ),
-                                  filled: true,
-                                  fillColor: Colors.grey[50],
-                                ),
-                                maxLines: null,
-                                textInputAction: TextInputAction.newline,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            IconButton(
-                              onPressed: canSend
-                                  ? () async {
-                                      final res = await controller
-                                          .addCommentary(
-                                            context,
-                                            publishId,
-                                            commentary.text,
-                                          );
-
-                                      if (res) {
-                                        final cm = await controller
-                                            .loadingCommentaries(publishId);
-
-                                        commentaries = cm;
-                                        final index = controller.publishs
-                                            .indexWhere(
-                                              (p) => p.id == publishId,
-                                            );
-
-                                        if (index != -1) {
-                                          controller
-                                                  .publishs[index]
-                                                  .qtCommentary =
-                                              (controller
-                                                      .publishs[index]
-                                                      .qtCommentary ??
-                                                  0) +
-                                              1;
-                                        }
-
-                                        outerSetState(() {});
-                                      }
-
-                                      commentary.clear();
-                                      setState(() {});
-                                    }
-                                  : null,
-                              icon: Icon(
-                                Icons.send_rounded,
-                                color: canSend
-                                    ? primaryColor
-                                    : Colors.grey.shade400,
-                              ),
-                              style: IconButton.styleFrom(
-                                backgroundColor: canSend
-                                    ? primaryColor.withOpacity(0.1)
-                                    : Colors.grey.shade100,
-                                padding: const EdgeInsets.all(12),
-                                disabledBackgroundColor: Colors.grey.shade100,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                    _commentaryFooter(
+                      canSend,
+                      publishId,
+                      outerSetState,
+                      setState,
                     ),
                   ],
                 ),
@@ -548,5 +307,223 @@ class _PublishState extends State<Publish> {
     ).then((_) {
       commentary.clear();
     });
+  }
+
+  _commentaryHeader() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Text(
+        "Comentários",
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  _commentaryContent(
+    String publishId,
+    void Function(VoidCallback) outerSetState,
+  ) {
+    return Expanded(
+      child: commentaries.isEmpty
+          ? Center(
+              child: Text(
+                "Nenhum comentário ainda.",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey[600], fontSize: 14),
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              itemCount: commentaries.length,
+              itemBuilder: (context, index) {
+                final comment = commentaries[index];
+                return InkWell(
+                  onLongPress:
+                      widget.isUserAdmin || comment.author.id == userIdLogged
+                      ? () async {
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Confirmar exclusão'),
+                              content: const Text(
+                                'Deseja realmente excluir este comentário?',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, false),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.grey,
+                                  ),
+                                  child: const Text('Cancelar'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.red,
+                                  ),
+                                  child: const Text('Excluir'),
+                                ),
+                              ],
+                            ),
+                          );
+
+                          if (confirmed == true) {
+                            try {
+                              await controller.deleteCommentary(comment.id);
+                              final cm = await controller.loadingCommentaries(
+                                publishId,
+                              );
+
+                              commentaries = cm;
+
+                              final pubIndex = controller.publishs.indexWhere(
+                                (p) => p.id == publishId,
+                              );
+
+                              if (pubIndex != -1) {
+                                controller.publishs[pubIndex].qtCommentary =
+                                    (controller
+                                            .publishs[pubIndex]
+                                            .qtCommentary ??
+                                        1) -
+                                    1;
+                              }
+
+                              outerSetState(() {}); // ✅ CORRIGIDO AQUI
+                              setState(() {});
+
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Comentário excluído com sucesso',
+                                    ),
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Erro ao excluir comentário: $e',
+                                    ),
+                                  ),
+                                );
+                              }
+                            }
+                          }
+                        }
+                      : null,
+                  child: Comment(
+                    userImage: comment.author.image ?? "",
+                    userName: comment.author.name!,
+                    comment: comment.content,
+                    timestamp: comment.whenSent as DateTime?,
+                  ),
+                );
+              },
+            ),
+    );
+  }
+
+  _commentaryFooter(
+    bool canSend,
+    String publishId,
+    void Function(VoidCallback) outerSetState,
+    StateSetter modalSetState,
+  ) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Colors.grey[300]!, width: 1)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: SafeArea(
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: commentary,
+                onChanged: (value) {
+                  modalSetState(() {});
+                },
+                decoration: InputDecoration(
+                  hintText: "Adicione um comentário...",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    borderSide: BorderSide(color: primaryColor, width: 2),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[50],
+                ),
+                maxLines: null,
+                textInputAction: TextInputAction.newline,
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              onPressed: canSend
+                  ? () async {
+                      final res = await controller.addCommentary(
+                        context,
+                        publishId,
+                        commentary.text,
+                      );
+
+                      if (res) {
+                        final cm = await controller.loadingCommentaries(
+                          publishId,
+                        );
+
+                        commentaries = cm;
+                        final index = controller.publishs.indexWhere(
+                          (p) => p.id == publishId,
+                        );
+
+                        if (index != -1) {
+                          controller.publishs[index].qtCommentary =
+                              (controller.publishs[index].qtCommentary ?? 0) +
+                              1;
+                        }
+
+                        outerSetState(() {});
+                      }
+
+                      commentary.clear();
+                      setState(() {});
+                    }
+                  : null,
+              icon: Icon(
+                Icons.send_rounded,
+                color: canSend ? primaryColor : Colors.grey.shade400,
+              ),
+              style: IconButton.styleFrom(
+                backgroundColor: canSend
+                    ? primaryColor.withOpacity(0.1)
+                    : Colors.grey.shade100,
+                padding: const EdgeInsets.all(12),
+                disabledBackgroundColor: Colors.grey.shade100,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
