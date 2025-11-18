@@ -48,13 +48,16 @@ class ImageDescriptionController {
           const SnackBar(content: Text('Fotos salva com sucesso')),
         );
 
-        Navigator.pushAndRemoveUntil(
+        Navigator.pop(context);
+        Navigator.pop(context);
+        Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                Publish(albumId: selectedAlbum, isUserAdmin: isUserAdmin),
+            builder: (context) => Publish(
+              albumId: selectedAlbum,
+              isUserAdmin: isUserAdmin,
+            ),
           ),
-          (Route<dynamic> route) => false,
         );
       }
     } catch (e) {
