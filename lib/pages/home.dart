@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tcc_flutter/controller/home_controller.dart';
 import 'package:tcc_flutter/domain/group_invite.dart';
+import 'package:tcc_flutter/pages/profile.dart';
 import 'package:tcc_flutter/utils/widget/custom_popup_menu.dart';
 import 'package:tcc_flutter/utils/widget/group_card.dart';
 
@@ -33,6 +34,10 @@ class _HomeState extends State<Home> {
     setState(() {
       isLoading = false;
     });
+  }
+
+  _goToProfile() {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => Profile()));
   }
 
   @override
@@ -88,6 +93,14 @@ class _HomeState extends State<Home> {
               ),
               CustomPopupMenu(
                 items: [
+                  PopupMenuItemData(
+                    value: 'perfil',
+                    label: 'Perfil',
+                    icon: Icons.person,
+                    onTap: () {
+                      _goToProfile();
+                    },
+                  ),
                   PopupMenuItemData(
                     value: 'logout',
                     label: 'Sair',
