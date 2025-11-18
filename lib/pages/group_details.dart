@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tcc_flutter/controller/group_details_controller.dart';
 import 'package:tcc_flutter/pages/camera.dart';
+import 'package:tcc_flutter/utils/prefs.dart';
 import 'package:tcc_flutter/utils/widget/album_card.dart';
 import 'package:tcc_flutter/utils/widget/custom_popup_menu.dart';
 import 'package:tcc_flutter/utils/widget/loading_overlay.dart';
@@ -31,6 +32,7 @@ class _GroupDetailsState extends State<GroupDetails> {
   Future<void> _loadGroup() async {
     await controller.fetchGroupById(widget.id);
     isUserAdmin = await controller.isUserAdmin();
+    Prefs.setBool("isUserAdmin", isUserAdmin);
     setState(() {
       isLoading = false;
     });

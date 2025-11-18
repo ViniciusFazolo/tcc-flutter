@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:tcc_flutter/pages/home.dart';
+import 'package:tcc_flutter/pages/publish.dart';
 import 'package:tcc_flutter/service/publish_service.dart';
 import 'package:tcc_flutter/utils/prefs.dart';
 import 'package:tcc_flutter/utils/utils.dart';
@@ -41,6 +42,7 @@ class ImageDescriptionController {
         description: description,
       );
 
+      bool isUserAdmin = await Prefs.getBool("isUserAdmin");
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Fotos salva com sucesso')),
@@ -48,7 +50,10 @@ class ImageDescriptionController {
 
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => Home()),
+          MaterialPageRoute(
+            builder: (context) =>
+                Publish(albumId: selectedAlbum, isUserAdmin: isUserAdmin),
+          ),
           (Route<dynamic> route) => false,
         );
       }
