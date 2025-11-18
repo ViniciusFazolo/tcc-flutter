@@ -13,7 +13,14 @@ class RegisterController {
   final confirmPw = TextEditingController();
   File? image;
 
-  Future<void> register(BuildContext context) async {
+  Future<void> register(
+    BuildContext context,
+    GlobalKey<FormState> formKey,
+  ) async {
+    if (!formKey.currentState!.validate()) {
+      return;
+    }
+
     if (pw.text != confirmPw.text) {
       showDialog(
         context: context,
