@@ -435,6 +435,7 @@ class _PublishState extends State<Publish> {
     StateSetter modalSetState,
   ) {
     final primaryColor = Theme.of(context).colorScheme.primary;
+    bool isSending = false; // Adicionar esta variável de estado
 
     return Container(
       decoration: BoxDecoration(
@@ -474,52 +475,82 @@ class _PublishState extends State<Publish> {
                 ),
                 maxLines: null,
                 textInputAction: TextInputAction.newline,
+                enabled: !isSending, // Desabilita o campo enquanto envia
               ),
             ),
             const SizedBox(width: 8),
-            IconButton(
-              onPressed: canSend
-                  ? () async {
-                      final res = await controller.addCommentary(
-                        context,
-                        publishId,
-                        commentary.text,
-                      );
+            StatefulBuilder(
+              builder: (context, setButtonState) {
+                return IconButton(
+                  onPressed: canSend && !isSending
+                      ? () async {
+                          setButtonState(() {
+                            isSending = true;
+                          });
 
-                      if (res) {
-                        final cm = await controller.loadingCommentaries(
-                          publishId,
-                        );
+                          final res = await controller.addCommentary(
+                            context,
+                            publishId,
+                            commentary.text,
+                          );
 
-                        commentaries = cm;
-                        final index = controller.publishs.indexWhere(
-                          (p) => p.id == publishId,
-                        );
+                          if (res) {
+                            final cm = await controller.loadingCommentaries(
+                              publishId,
+                            );
 
-                        if (index != -1) {
-                          controller.publishs[index].qtCommentary =
-                              (controller.publishs[index].qtCommentary ?? 0) +
-                              1;
+                            commentaries = cm;
+                            final index = controller.publishs.indexWhere(
+                              (p) => p.id == publishId,
+                            );
+
+                            if (index != -1) {
+                              controller.publishs[index].qtCommentary =
+                                  (controller.publishs[index].qtCommentary ??
+                                      0) +
+                                  1;
+                            }
+
+                            outerSetState(() {});
+                            modalSetState(
+                              () {},
+                            ); // Atualiza o modal imediatamente
+                          }
+
+                          commentary.clear();
+
+                          setButtonState(() {
+                            isSending = false;
+                          });
+
+                          modalSetState(() {}); // Atualiza o modal após limpar
+                          setState(() {});
                         }
-
-                        outerSetState(() {});
-                      }
-
-                      commentary.clear();
-                      setState(() {});
-                    }
-                  : null,
-              icon: Icon(
-                Icons.send_rounded,
-                color: canSend ? primaryColor : Colors.grey.shade400,
-              ),
-              style: IconButton.styleFrom(
-                backgroundColor: canSend
-                    ? primaryColor.withOpacity(0.1)
-                    : Colors.grey.shade100,
-                padding: const EdgeInsets.all(12),
-                disabledBackgroundColor: Colors.grey.shade100,
-              ),
+                      : null,
+                  icon: isSending
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              primaryColor,
+                            ),
+                          ),
+                        )
+                      : Icon(
+                          Icons.send_rounded,
+                          color: canSend ? primaryColor : Colors.grey.shade400,
+                        ),
+                  style: IconButton.styleFrom(
+                    backgroundColor: canSend && !isSending
+                        ? primaryColor.withOpacity(0.1)
+                        : Colors.grey.shade100,
+                    padding: const EdgeInsets.all(12),
+                    disabledBackgroundColor: Colors.grey.shade100,
+                  ),
+                );
+              },
             ),
           ],
         ),
