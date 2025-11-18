@@ -288,7 +288,7 @@ class _PublishState extends State<Publish> {
                     Divider(color: Colors.grey[300], height: 1),
 
                     // 2. MEIO - Lista de comentários
-                    _commentaryContent(publishId, outerSetState),
+                    _commentaryContent(publishId, outerSetState, setState),
 
                     // 3. RODAPÉ - Campo de digitar comentário
                     _commentaryFooter(
@@ -322,6 +322,7 @@ class _PublishState extends State<Publish> {
   _commentaryContent(
     String publishId,
     void Function(VoidCallback) outerSetState,
+    StateSetter modalSetState,
   ) {
     return Expanded(
       child: commentaries.isEmpty
@@ -371,11 +372,9 @@ class _PublishState extends State<Publish> {
                           if (confirmed == true) {
                             try {
                               await controller.deleteCommentary(comment.id);
-                              final cm = await controller.loadingCommentaries(
-                                publishId,
-                              );
 
-                              commentaries = cm;
+                              commentaries = await controller
+                                  .loadingCommentaries(publishId);
 
                               final pubIndex = controller.publishs.indexWhere(
                                 (p) => p.id == publishId,
@@ -390,8 +389,8 @@ class _PublishState extends State<Publish> {
                                     1;
                               }
 
-                              outerSetState(() {}); // ✅ CORRIGIDO AQUI
-                              setState(() {});
+                              modalSetState(() {});
+                              outerSetState(() {});
 
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
