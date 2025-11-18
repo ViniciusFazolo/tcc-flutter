@@ -119,7 +119,6 @@ class _HomeState extends State<Home> {
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : Container(
-              color: Colors.grey[100],
               width: double.infinity,
               padding: const EdgeInsets.all(8),
               child: controller.groups.isEmpty
